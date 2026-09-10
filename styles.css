@@ -13,9 +13,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
-body.profile-required > header, body.profile-required > main, body.profile-required > footer { visibility: hidden; }
 body.cloud-required > header, body.cloud-required > main, body.cloud-required > footer { visibility: hidden; }
-body.profile-required #closeProfiles { display: none; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 .topbar { height: 72px; padding: 0 clamp(20px, 5vw, 72px); display: flex; align-items: center; justify-content: space-between; background: var(--white); border-bottom: 1px solid var(--line); }
@@ -57,7 +55,7 @@ h1 { font-size: clamp(2.6rem, 6vw, 5rem); grid-column: 1; }
 .bank-entry { padding: 18px 20px; background: var(--white); border: 1px solid var(--line); border-radius: 4px; }
 .bank-wordline { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }.bank-wordline strong { font: 700 1.25rem/1.1 Georgia, serif; }.bank-wordline span { color: var(--red); font-weight: 700; }
 .bank-entry p { margin: 12px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.45; }.bank-entry p b { color: var(--ink); }.bank-empty { grid-column: 1 / -1; padding: 30px; border: 1px dashed var(--line); color: var(--muted); text-align: center; }
-.profile-instruction { margin: 20px 0 0; color: var(--muted); }.profile-list { display: grid; gap: 10px; padding: 18px 0 10px; }.profile-choice { padding: 14px; background: var(--white); border: 1px solid var(--line); border-radius: 3px; text-align: left; font-weight: 700; }.profile-choice::before { content: '○'; margin-right: 10px; color: var(--muted); }.profile-choice.active { border-color: var(--red); color: var(--red); background: #fff5f5; }.profile-choice.active::before { content: '●'; color: var(--red); }
+.profile-instruction { margin: 20px 0 0; color: var(--muted); }
 .secondary { padding: 13px 20px; border: 1px solid var(--line); border-radius: 3px; background: var(--white); color: var(--ink); font-weight: 700; }
 .field-label { display: block; margin: 24px 0 8px; font-weight: 700; }.dialog-shell select { width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: 3px; background: white; color: var(--ink); }
 .dialog-shell > input { width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: 3px; background: white; color: var(--ink); }
