@@ -39,7 +39,7 @@ Deno.serve(async (request) => {
     const username = String(body.username || '').trim().toLowerCase()
     const password = String(body.password || '')
     if (!/^[a-z0-9_-]{3,24}$/.test(username)) return response({error: 'Invalid username.'}, 400)
-    if (password && password.length < 6) return response({error: 'Password must contain at least 6 characters.'}, 400)
+    if (password.length < 6) return response({error: 'Password must contain at least 6 characters.'}, 400)
 
     const secretKeys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}')
     const secretKey = secretKeys.default || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -48,8 +48,8 @@ Deno.serve(async (request) => {
     if (action === 'create') {
       const state = body.state && typeof body.state === 'object' ? body.state : {}
       if (JSON.stringify(state).length > 250000) return response({error: 'Profile is too large.'}, 413)
-      const salt = password ? hex(crypto.getRandomValues(new Uint8Array(16))) : null
-      const passwordHash = password ? await hashPassword(password, salt!) : null
+      const salt = hex(crypto.getRandomValues(new Uint8Array(16)))
+      const passwordHash = await hashPassword(password, salt)
       const {error} = await supabase.from('learner_accounts').insert({username, password_hash: passwordHash, password_salt: salt, state})
       if (error?.code === '23505') return response({error: 'That username is already taken.'}, 409)
       if (error) throw error
@@ -60,9 +60,14 @@ Deno.serve(async (request) => {
     if (loadError) throw loadError
     if (!profile) return response({error: 'Username not found.'}, 404)
     if (profile.password_hash) {
-      if (!password) return response({error: 'This profile requires a password.'}, 401)
       const candidate = await hashPassword(password, profile.password_salt)
       if (!sameHash(candidate, profile.password_hash)) return response({error: 'Incorrect password.'}, 401)
+    } else {
+      if (action !== 'load') return response({error: 'Open this username first to set its password.'}, 401)
+      const salt = hex(crypto.getRandomValues(new Uint8Array(16)))
+      const passwordHash = await hashPassword(password, salt)
+      const {error} = await supabase.from('learner_accounts').update({password_hash: passwordHash, password_salt: salt, updated_at: new Date().toISOString()}).eq('username', username)
+      if (error) throw error
     }
 
     if (action === 'load') return response({state: profile.state})
