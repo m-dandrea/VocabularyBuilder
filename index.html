@@ -99,18 +99,18 @@
     <dialog id="authDialog">
       <form class="dialog-shell" id="authForm">
         <div class="dialog-head"><div><p class="eyebrow">CLOUD ACCOUNT</p><h2>Welcome to Ti Ord</h2></div></div>
-        <p class="profile-instruction">Sign in to keep your learners, Glossary and progress synchronized across devices.</p>
-        <label class="field-label" for="authEmail">Email</label>
-        <input id="authEmail" type="email" autocomplete="email" required>
+        <p class="profile-instruction">Open your unique username on any device. A password is optional.</p>
+        <label class="field-label" for="authUsername">Username</label>
+        <input id="authUsername" type="text" autocomplete="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_-]+" required>
         <label class="field-label" for="authPassword">Password</label>
-        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required>
+        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Optional">
+        <p class="auth-hint">Without a password, anyone who knows the username can open the profile.</p>
         <p class="auth-message" id="authMessage" role="status"></p>
-        <button class="primary next" type="submit">Sign in</button>
-        <button class="secondary next" type="button" id="createAccount">Create account</button>
+        <button class="primary next" type="submit">Open profile</button>
+        <button class="secondary next" type="button" id="createAccount">Create new profile</button>
       </form>
     </dialog>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0/dist/umd/supabase.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="cloud.js"></script>
     <script src="dictionary.js"></script>

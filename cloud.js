@@ -1,9 +1,9 @@
 (function () {
-  const config = window.SUPABASE_CONFIG;
+  const endpoint = window.SUPABASE_CONFIG.profileEndpoint;
   const authDialog = document.querySelector('#authDialog');
   const appKey = (key) => key === 'tiOrdProfiles' || key === 'tiOrdActiveProfile' || key === 'tiOrdProgress' || key.startsWith('tiOrdProgress-') || key.startsWith('tiOrdKnown-') || key.startsWith('tiOrdExtraBatch-');
-  const client = window.supabase.createClient(config.url, config.publishableKey);
-  let currentUser = null;
+  let username = sessionStorage.getItem('tiOrdUsername') || '';
+  let password = sessionStorage.getItem('tiOrdPassword') || '';
   let saveTimer = null;
 
   function collectState() {
@@ -27,15 +27,25 @@
     });
   }
 
+  async function request(action, state) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action, username, password, state})
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Unable to connect to this profile.');
+    return result;
+  }
+
   async function uploadState() {
-    if (!currentUser) return;
-    const { error } = await client.from('user_state').upsert({
-      user_id: currentUser.id,
-      state: collectState(),
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
-    if (error) console.error('Cloud sync failed:', error.message);
-    else sessionStorage.removeItem('tiOrdCloudPending');
+    if (!username) return;
+    try {
+      await request('save', collectState());
+      sessionStorage.removeItem('tiOrdCloudPending');
+    } catch (error) {
+      console.error('Cloud sync failed:', error.message);
+    }
   }
 
   window.queueCloudSave = function () {
@@ -44,32 +54,27 @@
     saveTimer = setTimeout(uploadState, 350);
   };
 
-  async function prepareUser(user) {
-    currentUser = user;
-    const lastOwner = localStorage.getItem('tiOrdCloudOwner');
-    if (sessionStorage.getItem('tiOrdCloudPending') === '1' && lastOwner === user.id) await uploadState();
-    const { data, error } = await client.from('user_state').select('state').eq('user_id', user.id).maybeSingle();
-    if (error) throw error;
-    if (data?.state && Object.keys(data.state).length) {
-      restoreState(data.state);
-    } else if (lastOwner && lastOwner !== user.id) {
-      clearState();
-      const name = user.email?.split('@')[0] || 'Learner';
-      localStorage.setItem('tiOrdProfiles', JSON.stringify([{id:'learner-1', name, wordCount:10, difficulty:'easy'}]));
-      await uploadState();
-    } else {
-      await uploadState();
-    }
-    localStorage.setItem('tiOrdCloudOwner', user.id);
+  function rememberProfile() {
+    sessionStorage.setItem('tiOrdUsername', username);
+    sessionStorage.setItem('tiOrdPassword', password);
+    localStorage.setItem('tiOrdCloudOwner', username);
     document.body.classList.remove('cloud-required');
     const accountButton = document.querySelector('#accountButton');
-    accountButton.title = user.email || '';
+    accountButton.textContent = `${username} · Sign out`;
     accountButton.onclick = async () => {
       await uploadState();
-      await client.auth.signOut();
+      sessionStorage.removeItem('tiOrdUsername');
+      sessionStorage.removeItem('tiOrdPassword');
       clearState();
       location.reload();
     };
+  }
+
+  async function openProfile() {
+    if (sessionStorage.getItem('tiOrdCloudPending') === '1' && localStorage.getItem('tiOrdCloudOwner') === username) await uploadState();
+    const result = await request('load');
+    restoreState(result.state);
+    rememberProfile();
   }
 
   function showAuth() {
@@ -77,52 +82,55 @@
     if (!authDialog.open) authDialog.showModal();
   }
 
-  function authError(message, isError = true) {
+  function authMessage(message, isError = true) {
     const element = document.querySelector('#authMessage');
     element.textContent = message;
     element.classList.toggle('error', isError);
   }
 
+  function readCredentials() {
+    username = document.querySelector('#authUsername').value.trim().toLowerCase();
+    password = document.querySelector('#authPassword').value;
+  }
+
   window.cloudReady = (async function () {
-    const { data: { session } } = await client.auth.getSession();
-    if (session?.user) {
-      await prepareUser(session.user);
+    if (username) {
+      await openProfile();
       return;
     }
-
     showAuth();
     await new Promise((resolve) => {
       document.querySelector('#authForm').onsubmit = async (event) => {
         event.preventDefault();
-        authError('Signing in…', false);
-        const email = document.querySelector('#authEmail').value.trim();
-        const password = document.querySelector('#authPassword').value;
-        const { data, error } = await client.auth.signInWithPassword({ email, password });
-        if (error) return authError(error.message);
-        await prepareUser(data.user);
-        authDialog.close();
-        resolve();
+        readCredentials();
+        authMessage('Opening profile…', false);
+        try {
+          await openProfile();
+          authDialog.close();
+          resolve();
+        } catch (error) { authMessage(error.message); }
       };
 
       document.querySelector('#createAccount').onclick = async () => {
-        authError('Creating account…', false);
-        const email = document.querySelector('#authEmail').value.trim();
-        const password = document.querySelector('#authPassword').value;
-        if (!email || password.length < 6) return authError('Enter an email and a password of at least 6 characters.');
-        const { data, error } = await client.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: 'https://m-dandrea.github.io/VocabularyBuilder/' }
-        });
-        if (error) return authError(error.message);
-        if (!data.session) return authError('Check your email to confirm the account, then return here to sign in.', false);
-        await prepareUser(data.user);
-        authDialog.close();
-        resolve();
+        readCredentials();
+        if (!/^[a-z0-9_-]{3,24}$/.test(username)) return authMessage('Use 3–24 letters, numbers, hyphens or underscores.');
+        if (password && password.length < 6) return authMessage('A password must contain at least 6 characters.');
+        authMessage('Creating profile…', false);
+        try {
+          const lastOwner = localStorage.getItem('tiOrdCloudOwner');
+          if (lastOwner && lastOwner !== username) clearState();
+          const result = await request('create', collectState());
+          restoreState(result.state);
+          rememberProfile();
+          authDialog.close();
+          resolve();
+        } catch (error) { authMessage(error.message); }
       };
     });
   })().catch((error) => {
     showAuth();
-    authError(`Cloud connection failed: ${error.message}`);
+    authMessage(error.message);
+    sessionStorage.removeItem('tiOrdUsername');
+    sessionStorage.removeItem('tiOrdPassword');
   });
 })();
