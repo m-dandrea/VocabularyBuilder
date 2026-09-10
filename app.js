@@ -164,12 +164,28 @@ $('#moreWordsButton').onclick = () => {
   location.reload();
 };
 const settingsDialog = $('#settingsDialog');
-$('#settingsButton').onclick = () => {
+let onboardingSettings = false;
+function openSettings(isOnboarding = false) {
+  onboardingSettings = isOnboarding;
   $('#wordCountSetting').value = String(activeProfile.wordCount);
   $('#difficultySetting').value = activeProfile.difficulty;
+  $('#skipSettings').hidden = !isOnboarding;
+  $('#openPlacement').hidden = isOnboarding;
   settingsDialog.showModal();
-};
-$('#closeSettings').onclick = () => settingsDialog.close();
+}
+function continueToPlacement() {
+  onboardingSettings = false;
+  settingsDialog.close();
+  openPlacement();
+}
+$('#settingsButton').onclick = () => openSettings();
+$('#closeSettings').onclick = () => onboardingSettings ? continueToPlacement() : settingsDialog.close();
+$('#skipSettings').onclick = continueToPlacement;
+settingsDialog.addEventListener('cancel', (event) => {
+  if (!onboardingSettings) return;
+  event.preventDefault();
+  continueToPlacement();
+});
 $('#openPlacement').onclick = () => { settingsDialog.close(); openPlacement(); };
 $('#settingsForm').onsubmit = (event) => {
   event.preventDefault();
@@ -177,6 +193,7 @@ $('#settingsForm').onsubmit = (event) => {
   activeProfile.difficulty = $('#difficultySetting').value;
   localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
   saveCloud();
+  if (onboardingSettings) sessionStorage.setItem('tiOrdOpenPlacement', '1');
   location.reload();
 };
 
@@ -282,7 +299,10 @@ function registerWebMCP() {
 }
 
 renderWords(); registerWebMCP();
-if (sessionStorage.getItem('tiOrdOpenPlacement') === '1') {
+if (sessionStorage.getItem('tiOrdOpenSettings') === '1') {
+  sessionStorage.removeItem('tiOrdOpenSettings');
+  openSettings(true);
+} else if (sessionStorage.getItem('tiOrdOpenPlacement') === '1') {
   sessionStorage.removeItem('tiOrdOpenPlacement');
   openPlacement();
 }
