@@ -41,7 +41,8 @@ seks|six|number;syv|seven|number;otte|eight|number;ni|nine|number;ti|ten|number;
 min|my|pronoun;din|your|pronoun;hans|his|pronoun;hendes|her|pronoun;vores|our|pronoun;jeres|your plural|pronoun;deres|their|pronoun;jeg|I|pronoun;du|you|pronoun;han|he|pronoun;hun|she|pronoun;vi|we|pronoun;I|you plural|pronoun;de|they|pronoun;det|it|pronoun;den|it / that|pronoun;dette|this|pronoun;disse|these|pronoun;hvilken|which|question word;hvordan|how|question word;hvor meget|how much|question word;hvor mange|how many|question word
 `.trim().split(';').filter(Boolean).map((row) => { const [da,en,type] = row.split('|'); return [da,en,type,'']; });
 
-const WORDS = Dictionary.build([...CORE_WORDS, ...EXTRA_WORDS].map(([da,en,type,sentence], id) => ({id,da,en,type,sentence})));
+const WORDS = Dictionary.build(DICTIONARY_WORDS);
+const WORD_BY_ID = new Map(WORDS.map((word) => [word.id, word]));
 const RELATED = {
   'at være':['at blive','at findes'], 'at have':['at eje','at få'], 'at gå':['at vandre','at komme'], 'at se':['at kigge','at observere'], 'at vide':['at kende','at forstå'],
   'at sige':['at fortælle','at tale'], 'at spise':['at få noget at spise','at nyde'], 'at drikke':['at tage en slurk','at nyde'], 'at bo':['at leve','at opholde sig'],
@@ -67,7 +68,7 @@ profiles = [activeProfile];
 activeProfile.wordCount = [5,10,20].includes(Number(activeProfile.wordCount)) ? Number(activeProfile.wordCount) : 10;
 activeProfile.difficulty = Dictionary.levels.includes(activeProfile.difficulty) ? activeProfile.difficulty : 'easy';
 const knownStorageKey = `tiOrdKnown-${activeProfileId}`;
-const placementKnownIds = new Set(JSON.parse(localStorage.getItem(knownStorageKey) || '[]').map(Number));
+const placementKnownIds = new Set(JSON.parse(localStorage.getItem(knownStorageKey) || '[]'));
 const extraBatchKey = `tiOrdExtraBatch-${activeProfileId}-${todayKey}`;
 const extraBatch = Number(localStorage.getItem(extraBatchKey) || 0);
 const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
@@ -110,11 +111,11 @@ const saveProgress = () => localStorage.setItem(progressKey, JSON.stringify(save
 const saveCloud = () => window.queueCloudSave?.();
 
 function knownWords() {
-  const revealedIds = Object.keys(saved.revealed).map((key) => Number(key.slice(key.lastIndexOf('-') + 1)));
+  const revealedIds = Object.entries(saved.revealed).filter(([, revealed]) => revealed).map(([key]) => key.slice(11));
   const previousDayIds = Object.entries(saved.presentedByDay)
     .filter(([date]) => date < todayKey)
     .flatMap(([, ids]) => ids);
-  return [...new Set([...placementKnownIds, ...revealedIds, ...previousDayIds, ...saved.completedBatchIds])].map((id) => WORDS[id]).filter(Boolean);
+  return [...new Set([...placementKnownIds, ...revealedIds, ...previousDayIds, ...saved.completedBatchIds])].map((id) => WORD_BY_ID.get(id)).filter(Boolean);
 }
 
 function consecutiveStreak(days) {
@@ -286,7 +287,7 @@ function renderBingo(w) {
   const options=shuffle([w,...shuffle(WORDS.filter(x=>x.id!==w.id)).slice(0,8)]);
   $('#modeLabel').textContent=`${index+1} OF ${queue.length}`; $('#dialogTitle').textContent='Word bingo';
   $('#exerciseArea').innerHTML=`<div class="quiz"><p class="bingo-prompt">Find the Danish word for <strong>${w.en}</strong></p><div class="bingo-grid">${options.map(x=>`<button class="bingo-cell" data-id="${x.id}">${x.da}</button>`).join('')}</div></div>`;
-  document.querySelectorAll('.bingo-cell').forEach(cell=>cell.onclick=()=>{if(Number(cell.dataset.id)===w.id){cell.classList.add('correct');score++;setTimeout(()=>{index++;renderExercise()},350)}else cell.classList.add('wrong');});
+  document.querySelectorAll('.bingo-cell').forEach(cell=>cell.onclick=()=>{if(cell.dataset.id===w.id){cell.classList.add('correct');score++;setTimeout(()=>{index++;renderExercise()},350)}else cell.classList.add('wrong');});
 }
 
 $('#resetButton').addEventListener('click',()=>{if(confirm('Reset progress for this username?')){localStorage.removeItem(progressKey);saveCloud();location.reload();}});
