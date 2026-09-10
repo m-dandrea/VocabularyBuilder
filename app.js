@@ -350,8 +350,10 @@ saveCloud();
   console.error('App initialization failed:', error);
   document.body.classList.remove('cloud-required');
   const message = document.querySelector('#authMessage');
+  const authDialog = document.querySelector('#authDialog');
   if (message) {
-    message.textContent = 'The app could not finish loading. Please refresh the page.';
+    message.textContent = `The lesson could not finish loading: ${error.message || 'Unknown error'}. Please refresh the page.`;
     message.classList.add('error');
   }
+  if (authDialog && !authDialog.open) authDialog.showModal();
 });
