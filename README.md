@@ -8,6 +8,7 @@ A small, dependency-free web app for building practical Danish vocabulary.
 - Separate device-local learner profiles, each with its own fresh progress and glossary
 - Mandatory learner selection before each new browsing session
 - Clear select-and-continue profile flow, plus a separate Add new user action
+- Optional vocabulary check for new or existing learners; known words enter the Glossary and are excluded from future lessons
 - Per-learner daily lesson size: 5, 10, or 20 words
 - An option to load another full set immediately without waiting for the next day
 - Easy, medium, and advanced vocabulary classification in the dedicated Dictionary data layer
