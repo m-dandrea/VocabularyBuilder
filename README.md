@@ -6,7 +6,7 @@ A small, dependency-free web app for building practical Danish vocabulary.
 
 - Ten common Danish words every day, mixed across word types
 - Each unique Supabase-backed username has its own synchronized settings, progress, and Glossary; passwords are optional
-- New usernames go directly to an optional vocabulary check; known words enter the Glossary and are excluded from future lessons
+- New usernames can first adjust or skip lesson settings, then complete or skip the vocabulary check
 - Per-user daily lesson size: 5, 10, or 20 words
 - An option to load another full set immediately without waiting for the next day
 - Easy, medium, and advanced vocabulary classification in the dedicated Dictionary data layer
