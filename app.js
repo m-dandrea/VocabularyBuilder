@@ -84,7 +84,7 @@ function renderWords() {
 
 const dialog = $('#practiceDialog');
 let mode = '', queue = [], index = 0, score = 0;
-function openPractice(nextMode) { mode=nextMode; index=0; score=0; const pool = mode === 'sentence' ? practicePool.filter((w) => w.sentence) : practicePool; queue=shuffle(pool).slice(0,10); dialog.showModal(); renderExercise(); }
+function openPractice(nextMode) { mode=nextMode; index=0; score=0; queue=shuffle(practicePool).slice(0,10); dialog.showModal(); renderExercise(); }
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>openPractice(b.dataset.mode)));
 $('#closeDialog').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',e=>{ if(e.target===dialog) dialog.close(); });
@@ -98,7 +98,6 @@ function renderExercise() {
   if(index>=queue.length) return finish();
   const w=queue[index];
   if(mode==='bingo') return renderBingo(w);
-  if(mode==='sentence') return renderSentence(w);
   const danishFirst=mode==='da-en'; const prompt=danishFirst?w.da:w.en; const answer=danishFirst?w.en:w.da;
   $('#modeLabel').textContent = `${index+1} OF ${queue.length}`;
   $('#dialogTitle').textContent = danishFirst?'Translate to English':'Translate to Danish';
@@ -114,20 +113,13 @@ function renderBingo(w) {
   document.querySelectorAll('.bingo-cell').forEach(cell=>cell.onclick=()=>{if(Number(cell.dataset.id)===w.id){cell.classList.add('correct');score++;setTimeout(()=>{index++;renderExercise()},350)}else cell.classList.add('wrong');});
 }
 
-function renderSentence(w) {
-  const options=shuffle([w,...shuffle(practicePool.filter(x=>x.id!==w.id)).slice(0,3)]);
-  $('#modeLabel').textContent=`${index+1} OF ${queue.length}`; $('#dialogTitle').textContent='Complete the sentence';
-  $('#exerciseArea').innerHTML=`<div class="quiz"><p class="sentence">${w.sentence}</p><div class="sentence-options">${options.map(x=>`<button data-id="${x.id}">${clean(x.da)}</button>`).join('')}</div><div class="feedback" id="feedback"></div></div>`;
-  document.querySelectorAll('.sentence-options button').forEach(btn=>btn.onclick=()=>{const ok=Number(btn.dataset.id)===w.id;if(ok)score++;$('#feedback').className=`feedback ${ok?'good':'bad'}`;$('#feedback').textContent=ok?'Correct!':`The answer is “${clean(w.da)}”.`;document.querySelectorAll('.sentence-options button').forEach(b=>b.disabled=true);setTimeout(()=>{index++;renderExercise()},700);});
-}
-
 $('#resetButton').addEventListener('click',()=>{if(confirm('Reset all saved progress on this device?')){localStorage.removeItem('tiOrdProgress');location.reload();}});
 
 function registerWebMCP() {
   if(!document.modelContext?.registerTool) return;
   const register=(tool)=>Promise.resolve(document.modelContext.registerTool(tool)).catch(()=>{});
   register({name:'read_todays_danish_words',title:"Read today's Danish words",description:"Return today's ten Danish vocabulary words and English translations.",inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute:()=>({date:todayKey,words:todaysWords.map(({da,en,type})=>({danish:da,english:en,type}))})});
-  register({name:'start_vocabulary_exercise',title:'Start vocabulary exercise',description:'Open one of the visible Danish vocabulary practice modes.',inputSchema:{type:'object',properties:{mode:{type:'string',enum:['da-en','en-da','bingo','sentence']}},required:['mode'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:({mode})=>{if(!['da-en','en-da','bingo','sentence'].includes(mode))throw new Error('Invalid mode');openPractice(mode);return{opened:true,mode};}});
+  register({name:'start_vocabulary_exercise',title:'Start vocabulary exercise',description:'Open one of the visible Danish vocabulary practice modes.',inputSchema:{type:'object',properties:{mode:{type:'string',enum:['da-en','en-da','bingo']}},required:['mode'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:({mode})=>{if(!['da-en','en-da','bingo'].includes(mode))throw new Error('Invalid mode');openPractice(mode);return{opened:true,mode};}});
 }
 
 renderWords(); registerWebMCP();
