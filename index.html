@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#a51c30" />
+    <meta name="description" content="Learn ten useful Danish words each day with quick, varied exercises." />
+    <title>Ti Ord — Daily Danish vocabulary</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Ti Ord home"><span>TI</span> ORD</a>
+      <div class="streak" aria-label="Current learning streak"><span>●</span> <strong id="streakCount">1</strong> day streak</div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow" id="todayLabel">TODAY</p>
+        <h1>Godmorgen, Matt.</h1>
+        <p>Ten useful words. A few minutes. One step closer to Danish.</p>
+        <div class="progress-wrap" aria-label="Daily progress">
+          <div class="progress-copy"><span>Today’s progress</span><strong><span id="learnedCount">0</span> / 10</strong></div>
+          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        </div>
+      </section>
+
+      <section class="words-section" aria-labelledby="wordsHeading">
+        <div class="section-heading">
+          <div><p class="eyebrow">DAGENS ORD</p><h2 id="wordsHeading">Today’s words</h2></div>
+          <p>Tap a card to reveal its meaning.</p>
+        </div>
+        <div id="wordGrid" class="word-grid"></div>
+      </section>
+
+      <section class="practice-section" aria-labelledby="practiceHeading">
+        <div class="section-heading">
+          <div><p class="eyebrow">ØVELSER</p><h2 id="practiceHeading">Ready to practise?</h2></div>
+          <p id="reviewNote">Includes words from previous days.</p>
+        </div>
+        <div class="practice-grid">
+          <button class="practice-card red" data-mode="da-en"><span class="mode-icon">DA → EN</span><strong>Translate to English</strong><small>Recall the meaning</small></button>
+          <button class="practice-card blue" data-mode="en-da"><span class="mode-icon">EN → DA</span><strong>Translate to Danish</strong><small>Practise spelling</small></button>
+          <button class="practice-card yellow" data-mode="bingo"><span class="mode-icon">3 × 3</span><strong>Word bingo</strong><small>Match words quickly</small></button>
+          <button class="practice-card ink" data-mode="sentence"><span class="mode-icon">…</span><strong>Complete a sentence</strong><small>Use words in context</small></button>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>TI ORD</span><p>Small steps, every day.</p><button id="resetButton" class="text-button">Reset progress</button></footer>
+
+    <dialog id="practiceDialog">
+      <div class="dialog-shell">
+        <div class="dialog-head"><div><p class="eyebrow" id="modeLabel">PRACTICE</p><h2 id="dialogTitle">Translate</h2></div><button id="closeDialog" class="close" aria-label="Close">×</button></div>
+        <div id="exerciseArea"></div>
+      </div>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
