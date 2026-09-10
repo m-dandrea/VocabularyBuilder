@@ -40,7 +40,7 @@ seks|six|number;syv|seven|number;otte|eight|number;ni|nine|number;ti|ten|number;
 min|my|pronoun;din|your|pronoun;hans|his|pronoun;hendes|her|pronoun;vores|our|pronoun;jeres|your plural|pronoun;deres|their|pronoun;jeg|I|pronoun;du|you|pronoun;han|he|pronoun;hun|she|pronoun;vi|we|pronoun;I|you plural|pronoun;de|they|pronoun;det|it|pronoun;den|it / that|pronoun;dette|this|pronoun;disse|these|pronoun;hvilken|which|question word;hvordan|how|question word;hvor meget|how much|question word;hvor mange|how many|question word
 `.trim().split(';').filter(Boolean).map((row) => { const [da,en,type] = row.split('|'); return [da,en,type,'']; });
 
-const WORDS = [...CORE_WORDS, ...EXTRA_WORDS].map(([da,en,type,sentence], id) => ({id,da,en,type,sentence}));
+const WORDS = Dictionary.build([...CORE_WORDS, ...EXTRA_WORDS].map(([da,en,type,sentence], id) => ({id,da,en,type,sentence})));
 const RELATED = {
   'at være':['at blive','at findes'], 'at have':['at eje','at få'], 'at gå':['at vandre','at komme'], 'at se':['at kigge','at observere'], 'at vide':['at kende','at forstå'],
   'at sige':['at fortælle','at tale'], 'at spise':['at få noget at spise','at nyde'], 'at drikke':['at tage en slurk','at nyde'], 'at bo':['at leve','at opholde sig'],
@@ -56,18 +56,23 @@ const RELATED = {
 const DAY_MS = 86400000;
 const todayKey = new Date().toISOString().slice(0,10);
 const dayNumber = Math.floor((Date.now() - Date.UTC(2026,0,1)) / DAY_MS);
-const DAILY_TYPES = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
-const batch = (offset = 0) => DAILY_TYPES.map((type, index) => {
-  const choices = WORDS.filter((word) => word.type === type);
+let profiles = JSON.parse(localStorage.getItem('tiOrdProfiles') || '[]');
+if (!profiles.length) profiles = [{id:'learner-1', name:'Matt', wordCount:10, difficulty:'easy'}];
+let activeProfileId = localStorage.getItem('tiOrdActiveProfile') || profiles[0].id;
+if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId = profiles[0].id;
+const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
+activeProfile.wordCount = [5,10,20].includes(Number(activeProfile.wordCount)) ? Number(activeProfile.wordCount) : 10;
+activeProfile.difficulty = Dictionary.levels.includes(activeProfile.difficulty) ? activeProfile.difficulty : 'easy';
+const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
+const batch = (offset = 0) => Array.from({length:activeProfile.wordCount}, (_, index) => {
+  const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
+  let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty);
+  if (!choices.length) choices = WORDS.filter((word) => word.type === type);
   return choices[((dayNumber + offset) * 5 + index * 11) % choices.length];
 });
 const todaysWords = batch(0);
 const reviewWords = dayNumber > 0 ? batch(-1) : todaysWords;
 const practicePool = [...todaysWords, ...reviewWords.filter(w=>!todaysWords.some(t=>t.id===w.id))];
-let profiles = JSON.parse(localStorage.getItem('tiOrdProfiles') || '[]');
-if (!profiles.length) profiles = [{id:'learner-1', name:'Matt'}];
-let activeProfileId = localStorage.getItem('tiOrdActiveProfile') || profiles[0].id;
-if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId = profiles[0].id;
 const legacyProgress = localStorage.getItem('tiOrdProgress');
 const progressKey = `tiOrdProgress-${activeProfileId}`;
 const saved = JSON.parse(localStorage.getItem(progressKey) || (activeProfileId === 'learner-1' ? legacyProgress : null) || '{}');
@@ -103,6 +108,8 @@ function renderWords() {
   const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
   $('#profileName').textContent = activeProfile.name;
   $('#greeting').textContent = `Godmorgen, ${activeProfile.name}.`;
+  $('#dailyWordText').textContent = activeProfile.wordCount === 5 ? 'Five' : activeProfile.wordCount === 20 ? 'Twenty' : 'Ten';
+  $('#wordGoal').textContent = activeProfile.wordCount;
   $('#todayLabel').textContent = new Intl.DateTimeFormat('en-DK',{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
   $('#streakCount').textContent = consecutiveStreak(saved.seenDays);
   $('#reviewNote').textContent = dayNumber > 0 ? 'Includes yesterday’s words for review.' : 'Today’s words will become tomorrow’s review.';
@@ -116,7 +123,7 @@ function renderWords() {
     return card;
   }));
   const count = todaysWords.filter(w=>saved.revealed[`${todayKey}-${w.id}`]).length;
-  $('#learnedCount').textContent = count; $('#progressBar').style.width = `${count*10}%`;
+  $('#learnedCount').textContent = count; $('#progressBar').style.width = `${count/activeProfile.wordCount*100}%`;
   renderWordBank();
 }
 
@@ -147,9 +154,24 @@ $('#addProfile').onclick = () => {
   const name = prompt('Name for the new learner?')?.trim();
   if (!name) return;
   const id = `learner-${Date.now()}`;
-  profiles.push({id, name});
+  profiles.push({id, name, wordCount:10, difficulty:'easy'});
   localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
   localStorage.setItem('tiOrdActiveProfile', id);
+  location.reload();
+};
+
+const settingsDialog = $('#settingsDialog');
+$('#settingsButton').onclick = () => {
+  $('#wordCountSetting').value = String(activeProfile.wordCount);
+  $('#difficultySetting').value = activeProfile.difficulty;
+  settingsDialog.showModal();
+};
+$('#closeSettings').onclick = () => settingsDialog.close();
+$('#settingsForm').onsubmit = (event) => {
+  event.preventDefault();
+  activeProfile.wordCount = Number($('#wordCountSetting').value);
+  activeProfile.difficulty = $('#difficultySetting').value;
+  localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
   location.reload();
 };
 
