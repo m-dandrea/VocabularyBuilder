@@ -72,10 +72,11 @@ const batch = (sequence) => {
   const selected = [];
   for (let index = 0; index < activeProfile.wordCount; index++) {
     const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
-    let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty);
-    if (!choices.length) choices = WORDS.filter((word) => word.type === type);
-    let choiceIndex = (sequence * 5 + index * 11) % choices.length;
-    while (selected.some((word) => word.id === choices[choiceIndex].id)) choiceIndex = (choiceIndex + 1) % choices.length;
+    const alreadySelected = new Set(selected.map((word) => word.id));
+    let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty && !alreadySelected.has(word.id));
+    if (!choices.length) choices = WORDS.filter((word) => word.type === type && !alreadySelected.has(word.id));
+    if (!choices.length) choices = WORDS.filter((word) => !alreadySelected.has(word.id));
+    const choiceIndex = (sequence * 5 + index * 11) % choices.length;
     selected.push(choices[choiceIndex]);
   }
   return selected;
