@@ -81,7 +81,19 @@
         <label class="field-label" for="difficultySetting">Difficulty</label>
         <select id="difficultySetting"><option value="easy">Easy</option><option value="medium">Medium</option><option value="advanced">Advanced</option></select>
         <button class="primary next" type="submit">Save settings</button>
+        <button class="secondary next" type="button" id="openPlacement">Check words I already know</button>
       </form>
+    </dialog>
+
+    <dialog id="placementDialog">
+      <div class="dialog-shell">
+        <div class="dialog-head"><div><p class="eyebrow">VOCABULARY CHECK</p><h2>Words you already know</h2></div><button id="closePlacement" class="close" aria-label="Close">×</button></div>
+        <p class="profile-instruction">Select every Danish word you already know. We’ll add them to your Glossary and avoid them in future lessons.</p>
+        <p class="placement-count" id="placementCount">0 words selected</p>
+        <div id="placementGrid" class="placement-grid"></div>
+        <button id="savePlacement" class="primary next">Save known words</button>
+        <button id="skipPlacement" class="secondary next">Skip for now</button>
+      </div>
     </dialog>
 
     <script src="dictionary.js"></script>
