@@ -1,3 +1,4 @@
+window.cloudReady.then(() => {
 const CORE_WORDS = [
   ['at være','to be','verb','Jeg vil gerne ___ hjemme.'],['at have','to have','verb','Jeg vil gerne ___ en kaffe.'],['at gøre','to do','verb','Hvad skal vi ___?'],['at sige','to say','verb','Hvad vil du ___?'],['at gå','to go / walk','verb','Jeg skal ___ nu.'],
   ['at komme','to come','verb','Kan du ___ i morgen?'],['at se','to see','verb','Jeg kan ___ havet.'],['at vide','to know','verb','Jeg vil gerne ___ mere.'],['at kunne','can / to be able to','verb','Det er godt at ___ tale lidt dansk.'],['at ville','to want','verb','Det er okay ikke at ___ med.'],
@@ -108,6 +109,7 @@ const shuffle = (a) => [...a].sort(() => Math.random() - .5);
 const clean = (s) => s.toLowerCase().trim().replace(/[.,!?]/g,'').replace(/^at /,'').replace(/^(en|et) /,'');
 const accepted = (input, answer) => answer.split('/').some(a => clean(a) === clean(input));
 const saveProgress = () => localStorage.setItem(progressKey, JSON.stringify(saved));
+const saveCloud = () => window.queueCloudSave?.();
 
 function knownWords() {
   const revealedIds = Object.keys(saved.revealed).map((key) => Number(key.slice(key.lastIndexOf('-') + 1)));
@@ -139,7 +141,7 @@ function renderWords() {
     card.className = `word-card${isOpen ? ' revealed' : ''}`;
     card.setAttribute('aria-pressed',String(isOpen));
     card.innerHTML = `<span class="word-number">${String(i+1).padStart(2,'0')}</span><span class="word-main">${isOpen ? word.en : word.da}</span><span class="word-type">${isOpen ? word.da : word.type}</span>`;
-    card.addEventListener('click',()=>{ saved.revealed[`${todayKey}-${word.id}`]=true; saveProgress(); renderWords(); });
+    card.addEventListener('click',()=>{ saved.revealed[`${todayKey}-${word.id}`]=true; saveProgress(); saveCloud(); renderWords(); });
     return card;
   }));
   const count = todaysWords.filter(w=>saved.revealed[`${todayKey}-${w.id}`]).length;
@@ -174,6 +176,7 @@ $('#moreWordsButton').onclick = () => {
   saved.completedBatchIds = [...new Set([...saved.completedBatchIds, ...todaysWords.map((word) => word.id)])];
   saveProgress();
   localStorage.setItem(extraBatchKey, String(extraBatch + 1));
+  saveCloud();
   location.reload();
 };
 $('#profileButton').onclick = () => { pendingProfileId = activeProfileId; renderProfiles(); profileDialog.showModal(); };
@@ -182,6 +185,7 @@ profileDialog.addEventListener('cancel', (event) => { if (needsProfileSelection)
 $('#continueProfile').onclick = () => {
   sessionStorage.setItem('tiOrdSessionProfile', pendingProfileId);
   localStorage.setItem('tiOrdActiveProfile', pendingProfileId);
+  saveCloud();
   location.reload();
 };
 $('#addProfile').onclick = () => {
@@ -193,6 +197,7 @@ $('#addProfile').onclick = () => {
   sessionStorage.setItem('tiOrdSessionProfile', id);
   localStorage.setItem('tiOrdActiveProfile', id);
   sessionStorage.setItem('tiOrdOpenPlacement', '1');
+  saveCloud();
   location.reload();
 };
 
@@ -209,6 +214,7 @@ $('#settingsForm').onsubmit = (event) => {
   activeProfile.wordCount = Number($('#wordCountSetting').value);
   activeProfile.difficulty = $('#difficultySetting').value;
   localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
+  saveCloud();
   location.reload();
 };
 
@@ -240,6 +246,7 @@ function openPlacement() {
 }
 $('#savePlacement').onclick = () => {
   localStorage.setItem(knownStorageKey, JSON.stringify([...placementSelection]));
+  saveCloud();
   location.reload();
 };
 $('#skipPlacement').onclick = () => placementDialog.close();
@@ -303,7 +310,7 @@ function renderBingo(w) {
   document.querySelectorAll('.bingo-cell').forEach(cell=>cell.onclick=()=>{if(Number(cell.dataset.id)===w.id){cell.classList.add('correct');score++;setTimeout(()=>{index++;renderExercise()},350)}else cell.classList.add('wrong');});
 }
 
-$('#resetButton').addEventListener('click',()=>{if(confirm('Reset progress for this learner?')){localStorage.removeItem(progressKey);location.reload();}});
+$('#resetButton').addEventListener('click',()=>{if(confirm('Reset progress for this learner?')){localStorage.removeItem(progressKey);saveCloud();location.reload();}});
 
 function registerWebMCP() {
   if(!document.modelContext?.registerTool) return;
@@ -321,3 +328,5 @@ if (needsProfileSelection) {
   sessionStorage.removeItem('tiOrdOpenPlacement');
   openPlacement();
 }
+saveCloud();
+});
