@@ -11,16 +11,16 @@
   <body>
     <header class="topbar">
       <button class="brand" id="homeButton" aria-label="Ti Ord home"><span>TI</span> ORD</button>
-      <div class="top-actions"><button class="nav-button" id="glossaryButton">Glossary</button><button class="nav-button" id="profileButton">Learner: <strong id="profileName">Matt</strong></button><div class="streak" aria-label="Current learning streak"><span>●</span> <strong id="streakCount">1</strong> day streak</div></div>
+      <div class="top-actions"><button class="nav-button" id="glossaryButton">Glossary</button><button class="nav-button" id="settingsButton">Settings</button><button class="nav-button" id="profileButton">Learner: <strong id="profileName">Matt</strong></button><div class="streak" aria-label="Current learning streak"><span>●</span> <strong id="streakCount">1</strong> day streak</div></div>
     </header>
 
     <main>
       <section class="intro lesson-only">
         <p class="eyebrow" id="todayLabel">TODAY</p>
         <h1 id="greeting">Godmorgen, Matt.</h1>
-        <p>Ten useful words. A few minutes. One step closer to Danish.</p>
+        <p><span id="dailyWordText">Ten</span> useful words. A few minutes. One step closer to Danish.</p>
         <div class="progress-wrap" aria-label="Daily progress">
-          <div class="progress-copy"><span>Today’s progress</span><strong><span id="learnedCount">0</span> / 10</strong></div>
+          <div class="progress-copy"><span>Today’s progress</span><strong><span id="learnedCount">0</span> / <span id="wordGoal">10</span></strong></div>
           <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
         </div>
       </section>
@@ -71,6 +71,18 @@
       </div>
     </dialog>
 
+    <dialog id="settingsDialog">
+      <form class="dialog-shell" id="settingsForm">
+        <div class="dialog-head"><div><p class="eyebrow">LESSON SETTINGS</p><h2>Daily lesson</h2></div><button type="button" id="closeSettings" class="close" aria-label="Close">×</button></div>
+        <label class="field-label" for="wordCountSetting">Words per day</label>
+        <select id="wordCountSetting"><option value="5">5 words</option><option value="10">10 words</option><option value="20">20 words</option></select>
+        <label class="field-label" for="difficultySetting">Difficulty</label>
+        <select id="difficultySetting"><option value="easy">Easy</option><option value="medium">Medium</option><option value="advanced">Advanced</option></select>
+        <button class="primary next" type="submit">Save settings</button>
+      </form>
+    </dialog>
+
+    <script src="dictionary.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
