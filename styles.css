@@ -13,6 +13,8 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+body.profile-required > header, body.profile-required > main, body.profile-required > footer { visibility: hidden; }
+body.profile-required #closeProfiles { display: none; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 .topbar { height: 72px; padding: 0 clamp(20px, 5vw, 72px); display: flex; align-items: center; justify-content: space-between; background: var(--white); border-bottom: 1px solid var(--line); }
