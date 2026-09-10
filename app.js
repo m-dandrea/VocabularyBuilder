@@ -1,4 +1,4 @@
-window.cloudReady.then(() => {
+window.cloudReady.then((cloudSession = {}) => {
 const CORE_WORDS = [
   ['at være','to be','verb','Jeg vil gerne ___ hjemme.'],['at have','to have','verb','Jeg vil gerne ___ en kaffe.'],['at gøre','to do','verb','Hvad skal vi ___?'],['at sige','to say','verb','Hvad vil du ___?'],['at gå','to go / walk','verb','Jeg skal ___ nu.'],
   ['at komme','to come','verb','Kan du ___ i morgen?'],['at se','to see','verb','Jeg kan ___ havet.'],['at vide','to know','verb','Jeg vil gerne ___ mere.'],['at kunne','can / to be able to','verb','Det er godt at ___ tale lidt dansk.'],['at ville','to want','verb','Det er okay ikke at ___ med.'],
@@ -71,7 +71,8 @@ const knownStorageKey = `tiOrdKnown-${activeProfileId}`;
 const placementKnownIds = new Set(JSON.parse(localStorage.getItem(knownStorageKey) || '[]'));
 const skippedTopicsKey = `tiOrdSkippedTopics-${activeProfileId}`;
 const skippedTopics = new Set(JSON.parse(localStorage.getItem(skippedTopicsKey) || '[]'));
-const availableWords = WORDS.filter((word) => !skippedTopics.has(word.topic));
+const topicFilteredWords = WORDS.filter((word) => !skippedTopics.has(word.topic));
+const availableWords = topicFilteredWords.length ? topicFilteredWords : WORDS;
 const extraBatchKey = `tiOrdExtraBatch-${activeProfileId}-${todayKey}`;
 const extraBatch = Number(localStorage.getItem(extraBatchKey) || 0);
 const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
@@ -337,7 +338,7 @@ function registerWebMCP() {
 }
 
 renderWords(); registerWebMCP();
-if (sessionStorage.getItem('tiOrdOpenSettings') === '1') {
+if (cloudSession.newAccount || sessionStorage.getItem('tiOrdOpenSettings') === '1') {
   sessionStorage.removeItem('tiOrdOpenSettings');
   openSettings(true);
 } else if (sessionStorage.getItem('tiOrdOpenPlacement') === '1') {
@@ -345,4 +346,12 @@ if (sessionStorage.getItem('tiOrdOpenSettings') === '1') {
   openPlacement();
 }
 saveCloud();
+}).catch((error) => {
+  console.error('App initialization failed:', error);
+  document.body.classList.remove('cloud-required');
+  const message = document.querySelector('#authMessage');
+  if (message) {
+    message.textContent = 'The app could not finish loading. Please refresh the page.';
+    message.classList.add('error');
+  }
 });

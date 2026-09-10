@@ -109,7 +109,7 @@
         try {
           await openProfile();
           authDialog.close();
-          resolve();
+          resolve({newAccount:false});
         } catch (error) { authMessage(error.message); }
       };
 
@@ -125,7 +125,7 @@
           rememberProfile();
           sessionStorage.setItem('tiOrdOpenSettings', '1');
           authDialog.close();
-          resolve();
+          resolve({newAccount:true});
         } catch (error) { authMessage(error.message); }
       };
     });
