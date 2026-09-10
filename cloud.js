@@ -17,7 +17,6 @@
 
   function clearState() {
     Object.keys(localStorage).filter(appKey).forEach((key) => localStorage.removeItem(key));
-    sessionStorage.removeItem('tiOrdSessionProfile');
   }
 
   function restoreState(state) {
@@ -55,6 +54,7 @@
   };
 
   function rememberProfile() {
+    window.currentUsername = username;
     sessionStorage.setItem('tiOrdUsername', username);
     sessionStorage.setItem('tiOrdPassword', password);
     localStorage.setItem('tiOrdCloudOwner', username);
@@ -122,6 +122,7 @@
           const result = await request('create', collectState());
           restoreState(result.state);
           rememberProfile();
+          sessionStorage.setItem('tiOrdOpenPlacement', '1');
           authDialog.close();
           resolve();
         } catch (error) { authMessage(error.message); }

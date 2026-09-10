@@ -58,12 +58,12 @@ const DAY_MS = 86400000;
 const todayKey = new Date().toISOString().slice(0,10);
 const dayNumber = Math.floor((Date.now() - Date.UTC(2026,0,1)) / DAY_MS);
 let profiles = JSON.parse(localStorage.getItem('tiOrdProfiles') || '[]');
-if (!profiles.length) profiles = [{id:'learner-1', name:'Matt', wordCount:10, difficulty:'easy'}];
-const sessionProfileId = sessionStorage.getItem('tiOrdSessionProfile');
-const needsProfileSelection = !sessionProfileId;
-let activeProfileId = sessionProfileId || localStorage.getItem('tiOrdActiveProfile') || profiles[0].id;
+if (!profiles.length) profiles = [{id:'account', name:window.currentUsername || 'Learner', wordCount:10, difficulty:'easy'}];
+let activeProfileId = localStorage.getItem('tiOrdActiveProfile') || profiles[0].id;
 if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId = profiles[0].id;
 const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
+activeProfile.name = window.currentUsername || activeProfile.name;
+profiles = [activeProfile];
 activeProfile.wordCount = [5,10,20].includes(Number(activeProfile.wordCount)) ? Number(activeProfile.wordCount) : 10;
 activeProfile.difficulty = Dictionary.levels.includes(activeProfile.difficulty) ? activeProfile.difficulty : 'easy';
 const knownStorageKey = `tiOrdKnown-${activeProfileId}`;
@@ -96,13 +96,11 @@ saved.revealed = saved.revealed || {};
 saved.presentedByDay = saved.presentedByDay || {};
 saved.completedBatchIds = saved.completedBatchIds || [];
 saved.seenDays = saved.seenDays || [];
-if (!needsProfileSelection) {
-  saved.seenDays = Array.from(new Set([...saved.seenDays, todayKey])).sort();
-  saved.presentedByDay[todayKey] = [...new Set([...(saved.presentedByDay[todayKey] || []), ...todaysWords.map((word) => word.id)])];
-}
+saved.seenDays = Array.from(new Set([...saved.seenDays, todayKey])).sort();
+saved.presentedByDay[todayKey] = [...new Set([...(saved.presentedByDay[todayKey] || []), ...todaysWords.map((word) => word.id)])];
 localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
 localStorage.setItem('tiOrdActiveProfile', activeProfileId);
-if (!needsProfileSelection) localStorage.setItem(progressKey, JSON.stringify(saved));
+localStorage.setItem(progressKey, JSON.stringify(saved));
 
 const $ = (s) => document.querySelector(s);
 const shuffle = (a) => [...a].sort(() => Math.random() - .5);
@@ -127,7 +125,6 @@ function consecutiveStreak(days) {
 
 function renderWords() {
   const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
-  $('#profileName').textContent = activeProfile.name;
   $('#greeting').textContent = `Godmorgen, ${activeProfile.name}.`;
   $('#dailyWordText').textContent = activeProfile.wordCount === 5 ? 'Five' : activeProfile.wordCount === 20 ? 'Twenty' : 'Ten';
   $('#wordGoal').textContent = activeProfile.wordCount;
@@ -156,19 +153,6 @@ function showView(view) {
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-const profileDialog = $('#profileDialog');
-let pendingProfileId = activeProfileId;
-function renderProfiles() {
-  $('#profileList').replaceChildren(...profiles.map((profile) => {
-    const button = document.createElement('button');
-    button.className = `profile-choice${profile.id === pendingProfileId ? ' active' : ''}`;
-    button.setAttribute('aria-pressed', String(profile.id === pendingProfileId));
-    button.textContent = profile.name;
-    button.onclick = () => { pendingProfileId = profile.id; renderProfiles(); };
-    return button;
-  }));
-}
-
 $('#glossaryButton').onclick = () => showView('glossary');
 $('#backToLesson').onclick = () => showView('lesson');
 $('#homeButton').onclick = () => showView('lesson');
@@ -179,28 +163,6 @@ $('#moreWordsButton').onclick = () => {
   saveCloud();
   location.reload();
 };
-$('#profileButton').onclick = () => { pendingProfileId = activeProfileId; renderProfiles(); profileDialog.showModal(); };
-$('#closeProfiles').onclick = () => profileDialog.close();
-profileDialog.addEventListener('cancel', (event) => { if (needsProfileSelection) event.preventDefault(); });
-$('#continueProfile').onclick = () => {
-  sessionStorage.setItem('tiOrdSessionProfile', pendingProfileId);
-  localStorage.setItem('tiOrdActiveProfile', pendingProfileId);
-  saveCloud();
-  location.reload();
-};
-$('#addProfile').onclick = () => {
-  const name = prompt('Name for the new learner?')?.trim();
-  if (!name) return;
-  const id = `learner-${Date.now()}`;
-  profiles.push({id, name, wordCount:10, difficulty:'easy'});
-  localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
-  sessionStorage.setItem('tiOrdSessionProfile', id);
-  localStorage.setItem('tiOrdActiveProfile', id);
-  sessionStorage.setItem('tiOrdOpenPlacement', '1');
-  saveCloud();
-  location.reload();
-};
-
 const settingsDialog = $('#settingsDialog');
 $('#settingsButton').onclick = () => {
   $('#wordCountSetting').value = String(activeProfile.wordCount);
@@ -310,7 +272,7 @@ function renderBingo(w) {
   document.querySelectorAll('.bingo-cell').forEach(cell=>cell.onclick=()=>{if(Number(cell.dataset.id)===w.id){cell.classList.add('correct');score++;setTimeout(()=>{index++;renderExercise()},350)}else cell.classList.add('wrong');});
 }
 
-$('#resetButton').addEventListener('click',()=>{if(confirm('Reset progress for this learner?')){localStorage.removeItem(progressKey);saveCloud();location.reload();}});
+$('#resetButton').addEventListener('click',()=>{if(confirm('Reset progress for this username?')){localStorage.removeItem(progressKey);saveCloud();location.reload();}});
 
 function registerWebMCP() {
   if(!document.modelContext?.registerTool) return;
@@ -320,11 +282,7 @@ function registerWebMCP() {
 }
 
 renderWords(); registerWebMCP();
-if (needsProfileSelection) {
-  document.body.classList.add('profile-required');
-  renderProfiles();
-  profileDialog.showModal();
-} else if (sessionStorage.getItem('tiOrdOpenPlacement') === '1') {
+if (sessionStorage.getItem('tiOrdOpenPlacement') === '1') {
   sessionStorage.removeItem('tiOrdOpenPlacement');
   openPlacement();
 }
