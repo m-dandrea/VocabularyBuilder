@@ -1,7 +1,7 @@
 (function () {
   const endpoint = window.SUPABASE_CONFIG.profileEndpoint;
   const authDialog = document.querySelector('#authDialog');
-  const appKey = (key) => key === 'tiOrdDataVersion' || key === 'tiOrdProfiles' || key === 'tiOrdActiveProfile' || key === 'tiOrdProgress' || key.startsWith('tiOrdProgress-') || key.startsWith('tiOrdKnown-') || key.startsWith('tiOrdExtraBatch-');
+  const appKey = (key) => key === 'tiOrdDataVersion' || key === 'tiOrdProfiles' || key === 'tiOrdActiveProfile' || key === 'tiOrdProgress' || key.startsWith('tiOrdProgress-') || key.startsWith('tiOrdKnown-') || key.startsWith('tiOrdSkippedTopics-') || key.startsWith('tiOrdExtraBatch-');
   let username = sessionStorage.getItem('tiOrdUsername') || '';
   let password = sessionStorage.getItem('tiOrdPassword') || '';
   let saveTimer = null;
