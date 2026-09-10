@@ -104,6 +104,7 @@
       document.querySelector('#authForm').onsubmit = async (event) => {
         event.preventDefault();
         readCredentials();
+        if (password.length < 6) return authMessage('Enter a password containing at least 6 characters.');
         authMessage('Opening profile…', false);
         try {
           await openProfile();
@@ -115,7 +116,7 @@
       document.querySelector('#createAccount').onclick = async () => {
         readCredentials();
         if (!/^[a-z0-9_-]{3,24}$/.test(username)) return authMessage('Use 3–24 letters, numbers, hyphens or underscores.');
-        if (password && password.length < 6) return authMessage('A password must contain at least 6 characters.');
+        if (password.length < 6) return authMessage('A password must contain at least 6 characters.');
         authMessage('Creating profile…', false);
         try {
           clearState();
