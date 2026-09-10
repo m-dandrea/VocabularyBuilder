@@ -74,8 +74,10 @@
   async function openProfile() {
     if (sessionStorage.getItem('tiOrdCloudPending') === '1' && localStorage.getItem('tiOrdCloudOwner') === username) await uploadState();
     const result = await request('load');
+    const needsOnboarding = typeof result.state?.tiOrdProfiles !== 'string';
     restoreState(result.state?.tiOrdDataVersion === '2' ? result.state : {});
     rememberProfile();
+    return {needsOnboarding};
   }
 
   function showAuth() {
@@ -97,8 +99,8 @@
   window.cloudReady = (async function () {
     if (username) {
       try {
-        await openProfile();
-        return {newAccount:false};
+        const profile = await openProfile();
+        return {newAccount:profile.needsOnboarding};
       } catch (error) {
         sessionStorage.removeItem('tiOrdUsername');
         sessionStorage.removeItem('tiOrdPassword');
