@@ -11,7 +11,7 @@
   <body>
     <header class="topbar">
       <button class="brand" id="homeButton" aria-label="Ti Ord home"><span>TI</span> ORD</button>
-      <div class="top-actions"><button class="nav-button" id="glossaryButton">Glossary</button><button class="nav-button" id="settingsButton">Settings</button><button class="nav-button" id="profileButton">Learner: <strong id="profileName">Matt</strong></button><div class="streak" aria-label="Current learning streak"><span>●</span> <strong id="streakCount">1</strong> day streak</div></div>
+      <div class="top-actions"><button class="nav-button" id="glossaryButton">Glossary</button><button class="nav-button" id="settingsButton">Settings</button><button class="nav-button" id="profileButton">Learner: <strong id="profileName">Matt</strong></button><button class="nav-button" id="accountButton">Sign out</button><div class="streak" aria-label="Current learning streak"><span>●</span> <strong id="streakCount">1</strong> day streak</div></div>
     </header>
 
     <main>
@@ -96,6 +96,23 @@
       </div>
     </dialog>
 
+    <dialog id="authDialog">
+      <form class="dialog-shell" id="authForm">
+        <div class="dialog-head"><div><p class="eyebrow">CLOUD ACCOUNT</p><h2>Welcome to Ti Ord</h2></div></div>
+        <p class="profile-instruction">Sign in to keep your learners, Glossary and progress synchronized across devices.</p>
+        <label class="field-label" for="authEmail">Email</label>
+        <input id="authEmail" type="email" autocomplete="email" required>
+        <label class="field-label" for="authPassword">Password</label>
+        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required>
+        <p class="auth-message" id="authMessage" role="status"></p>
+        <button class="primary next" type="submit">Sign in</button>
+        <button class="secondary next" type="button" id="createAccount">Create account</button>
+      </form>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0/dist/umd/supabase.min.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="cloud.js"></script>
     <script src="dictionary.js"></script>
     <script src="app.js"></script>
   </body>
