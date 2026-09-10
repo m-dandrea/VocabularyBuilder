@@ -65,25 +65,35 @@ if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId
 const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
 activeProfile.wordCount = [5,10,20].includes(Number(activeProfile.wordCount)) ? Number(activeProfile.wordCount) : 10;
 activeProfile.difficulty = Dictionary.levels.includes(activeProfile.difficulty) ? activeProfile.difficulty : 'easy';
+const extraBatchKey = `tiOrdExtraBatch-${activeProfileId}-${todayKey}`;
+const extraBatch = Number(localStorage.getItem(extraBatchKey) || 0);
 const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
-const batch = (offset = 0) => Array.from({length:activeProfile.wordCount}, (_, index) => {
-  const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
-  let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty);
-  if (!choices.length) choices = WORDS.filter((word) => word.type === type);
-  return choices[((dayNumber + offset) * 5 + index * 11) % choices.length];
-});
-const todaysWords = batch(0);
-const reviewWords = dayNumber > 0 ? batch(-1) : todaysWords;
+const batch = (sequence) => {
+  const selected = [];
+  for (let index = 0; index < activeProfile.wordCount; index++) {
+    const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
+    let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty);
+    if (!choices.length) choices = WORDS.filter((word) => word.type === type);
+    let choiceIndex = (sequence * 5 + index * 11) % choices.length;
+    while (selected.some((word) => word.id === choices[choiceIndex].id)) choiceIndex = (choiceIndex + 1) % choices.length;
+    selected.push(choices[choiceIndex]);
+  }
+  return selected;
+};
+const dailySequence = dayNumber * 50;
+const todaysWords = batch(dailySequence + extraBatch);
+const reviewWords = extraBatch > 0 ? batch(dailySequence + extraBatch - 1) : dayNumber > 0 ? batch((dayNumber - 1) * 50) : todaysWords;
 const practicePool = [...todaysWords, ...reviewWords.filter(w=>!todaysWords.some(t=>t.id===w.id))];
 const legacyProgress = localStorage.getItem('tiOrdProgress');
 const progressKey = `tiOrdProgress-${activeProfileId}`;
 const saved = JSON.parse(localStorage.getItem(progressKey) || (activeProfileId === 'learner-1' ? legacyProgress : null) || '{}');
 saved.revealed = saved.revealed || {};
 saved.presentedByDay = saved.presentedByDay || {};
+saved.completedBatchIds = saved.completedBatchIds || [];
 saved.seenDays = saved.seenDays || [];
 if (!needsProfileSelection) {
   saved.seenDays = Array.from(new Set([...saved.seenDays, todayKey])).sort();
-  saved.presentedByDay[todayKey] = todaysWords.map((word) => word.id);
+  saved.presentedByDay[todayKey] = [...new Set([...(saved.presentedByDay[todayKey] || []), ...todaysWords.map((word) => word.id)])];
 }
 localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
 localStorage.setItem('tiOrdActiveProfile', activeProfileId);
@@ -100,7 +110,7 @@ function knownWords() {
   const previousDayIds = Object.entries(saved.presentedByDay)
     .filter(([date]) => date < todayKey)
     .flatMap(([, ids]) => ids);
-  return [...new Set([...revealedIds, ...previousDayIds])].map((id) => WORDS[id]).filter(Boolean);
+  return [...new Set([...revealedIds, ...previousDayIds, ...saved.completedBatchIds])].map((id) => WORDS[id]).filter(Boolean);
 }
 
 function consecutiveStreak(days) {
@@ -115,6 +125,7 @@ function renderWords() {
   $('#greeting').textContent = `Godmorgen, ${activeProfile.name}.`;
   $('#dailyWordText').textContent = activeProfile.wordCount === 5 ? 'Five' : activeProfile.wordCount === 20 ? 'Twenty' : 'Ten';
   $('#wordGoal').textContent = activeProfile.wordCount;
+  $('#moreWordsButton').textContent = `Get ${activeProfile.wordCount} more words`;
   $('#todayLabel').textContent = new Intl.DateTimeFormat('en-DK',{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
   $('#streakCount').textContent = consecutiveStreak(saved.seenDays);
   $('#reviewNote').textContent = dayNumber > 0 ? 'Includes yesterday’s words for review.' : 'Today’s words will become tomorrow’s review.';
@@ -153,6 +164,12 @@ function renderProfiles() {
 $('#glossaryButton').onclick = () => showView('glossary');
 $('#backToLesson').onclick = () => showView('lesson');
 $('#homeButton').onclick = () => showView('lesson');
+$('#moreWordsButton').onclick = () => {
+  saved.completedBatchIds = [...new Set([...saved.completedBatchIds, ...todaysWords.map((word) => word.id)])];
+  saveProgress();
+  localStorage.setItem(extraBatchKey, String(extraBatch + 1));
+  location.reload();
+};
 $('#profileButton').onclick = () => { renderProfiles(); profileDialog.showModal(); };
 $('#closeProfiles').onclick = () => profileDialog.close();
 profileDialog.addEventListener('cancel', (event) => { if (needsProfileSelection) event.preventDefault(); });
