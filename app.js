@@ -65,6 +65,8 @@ if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId
 const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
 activeProfile.wordCount = [5,10,20].includes(Number(activeProfile.wordCount)) ? Number(activeProfile.wordCount) : 10;
 activeProfile.difficulty = Dictionary.levels.includes(activeProfile.difficulty) ? activeProfile.difficulty : 'easy';
+const knownStorageKey = `tiOrdKnown-${activeProfileId}`;
+const placementKnownIds = new Set(JSON.parse(localStorage.getItem(knownStorageKey) || '[]').map(Number));
 const extraBatchKey = `tiOrdExtraBatch-${activeProfileId}-${todayKey}`;
 const extraBatch = Number(localStorage.getItem(extraBatchKey) || 0);
 const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
@@ -73,8 +75,9 @@ const batch = (sequence) => {
   for (let index = 0; index < activeProfile.wordCount; index++) {
     const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
     const alreadySelected = new Set(selected.map((word) => word.id));
-    let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty && !alreadySelected.has(word.id));
-    if (!choices.length) choices = WORDS.filter((word) => word.type === type && !alreadySelected.has(word.id));
+    let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
+    if (!choices.length) choices = WORDS.filter((word) => word.type === type && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
+    if (!choices.length) choices = WORDS.filter((word) => !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
     if (!choices.length) choices = WORDS.filter((word) => !alreadySelected.has(word.id));
     const choiceIndex = (sequence * 5 + index * 11) % choices.length;
     selected.push(choices[choiceIndex]);
@@ -111,7 +114,7 @@ function knownWords() {
   const previousDayIds = Object.entries(saved.presentedByDay)
     .filter(([date]) => date < todayKey)
     .flatMap(([, ids]) => ids);
-  return [...new Set([...revealedIds, ...previousDayIds, ...saved.completedBatchIds])].map((id) => WORDS[id]).filter(Boolean);
+  return [...new Set([...placementKnownIds, ...revealedIds, ...previousDayIds, ...saved.completedBatchIds])].map((id) => WORDS[id]).filter(Boolean);
 }
 
 function consecutiveStreak(days) {
@@ -189,6 +192,7 @@ $('#addProfile').onclick = () => {
   localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
   sessionStorage.setItem('tiOrdSessionProfile', id);
   localStorage.setItem('tiOrdActiveProfile', id);
+  sessionStorage.setItem('tiOrdOpenPlacement', '1');
   location.reload();
 };
 
@@ -199,6 +203,7 @@ $('#settingsButton').onclick = () => {
   settingsDialog.showModal();
 };
 $('#closeSettings').onclick = () => settingsDialog.close();
+$('#openPlacement').onclick = () => { settingsDialog.close(); openPlacement(); };
 $('#settingsForm').onsubmit = (event) => {
   event.preventDefault();
   activeProfile.wordCount = Number($('#wordCountSetting').value);
@@ -206,6 +211,39 @@ $('#settingsForm').onsubmit = (event) => {
   localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
   location.reload();
 };
+
+const placementDialog = $('#placementDialog');
+let placementSelection = new Set(placementKnownIds);
+function updatePlacementCount() {
+  const count = placementSelection.size;
+  $('#placementCount').textContent = `${count} word${count === 1 ? '' : 's'} selected`;
+}
+function openPlacement() {
+  placementSelection = new Set(placementKnownIds);
+  $('#placementGrid').replaceChildren(...WORDS.map((word) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `placement-word${placementSelection.has(word.id) ? ' selected' : ''}`;
+    button.setAttribute('aria-pressed', String(placementSelection.has(word.id)));
+    button.innerHTML = `<strong>${word.da}</strong><small>${word.type}</small>`;
+    button.onclick = () => {
+      if (placementSelection.has(word.id)) placementSelection.delete(word.id);
+      else placementSelection.add(word.id);
+      button.classList.toggle('selected', placementSelection.has(word.id));
+      button.setAttribute('aria-pressed', String(placementSelection.has(word.id)));
+      updatePlacementCount();
+    };
+    return button;
+  }));
+  updatePlacementCount();
+  placementDialog.showModal();
+}
+$('#savePlacement').onclick = () => {
+  localStorage.setItem(knownStorageKey, JSON.stringify([...placementSelection]));
+  location.reload();
+};
+$('#skipPlacement').onclick = () => placementDialog.close();
+$('#closePlacement').onclick = () => placementDialog.close();
 
 function renderWordBank() {
   const seen = knownWords().sort((a,b) => a.da.localeCompare(b.da, 'da'));
@@ -279,4 +317,7 @@ if (needsProfileSelection) {
   document.body.classList.add('profile-required');
   renderProfiles();
   profileDialog.showModal();
+} else if (sessionStorage.getItem('tiOrdOpenPlacement') === '1') {
+  sessionStorage.removeItem('tiOrdOpenPlacement');
+  openPlacement();
 }
