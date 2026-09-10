@@ -10,7 +10,7 @@ A small, dependency-free web app for building practical Danish vocabulary.
 - Click-to-reveal translations and device-local progress
 - Automatic review of words from the previous day
 - Danish → English and English → Danish recall
-- Word bingo alongside translation exercises
+- Word bingo that only tests revealed or previously presented words; distractors use the full bank
 - A device-local glossary in its own view, including explanations and related Danish words
 - Responsive layout for phone and desktop
 - No account, API, dictionary service, or internet search required
