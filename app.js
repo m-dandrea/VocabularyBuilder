@@ -73,6 +73,8 @@ const progressKey = `tiOrdProgress-${activeProfileId}`;
 const saved = JSON.parse(localStorage.getItem(progressKey) || (activeProfileId === 'learner-1' ? legacyProgress : null) || '{}');
 saved.seenDays = Array.from(new Set([...(saved.seenDays || []), todayKey])).sort();
 saved.revealed = saved.revealed || {};
+saved.presentedByDay = saved.presentedByDay || {};
+saved.presentedByDay[todayKey] = todaysWords.map((word) => word.id);
 localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
 localStorage.setItem('tiOrdActiveProfile', activeProfileId);
 localStorage.setItem(progressKey, JSON.stringify(saved));
@@ -82,6 +84,14 @@ const shuffle = (a) => [...a].sort(() => Math.random() - .5);
 const clean = (s) => s.toLowerCase().trim().replace(/[.,!?]/g,'').replace(/^at /,'').replace(/^(en|et) /,'');
 const accepted = (input, answer) => answer.split('/').some(a => clean(a) === clean(input));
 const saveProgress = () => localStorage.setItem(progressKey, JSON.stringify(saved));
+
+function knownWords() {
+  const revealedIds = Object.keys(saved.revealed).map((key) => Number(key.slice(key.lastIndexOf('-') + 1)));
+  const previousDayIds = Object.entries(saved.presentedByDay)
+    .filter(([date]) => date < todayKey)
+    .flatMap(([, ids]) => ids);
+  return [...new Set([...revealedIds, ...previousDayIds])].map((id) => WORDS[id]).filter(Boolean);
+}
 
 function consecutiveStreak(days) {
   const set = new Set(days); let streak = 0; const date = new Date(`${todayKey}T12:00:00Z`);
@@ -144,8 +154,7 @@ $('#addProfile').onclick = () => {
 };
 
 function renderWordBank() {
-  const ids = [...new Set(Object.keys(saved.revealed).map((key) => Number(key.slice(key.lastIndexOf('-') + 1))))];
-  const seen = ids.map((id) => WORDS[id]).filter(Boolean).sort((a,b) => a.da.localeCompare(b.da, 'da'));
+  const seen = knownWords().sort((a,b) => a.da.localeCompare(b.da, 'da'));
   $('#bankCount').textContent = `${seen.length} word${seen.length === 1 ? '' : 's'} saved`;
   if (!seen.length) {
     $('#wordBank').innerHTML = '<div class="bank-empty">Reveal a word above and it will stay here for review.</div>';
@@ -162,7 +171,18 @@ function renderWordBank() {
 
 const dialog = $('#practiceDialog');
 let mode = '', queue = [], index = 0, score = 0;
-function openPractice(nextMode) { mode=nextMode; index=0; score=0; queue=shuffle(practicePool).slice(0,10); dialog.showModal(); renderExercise(); }
+function openPractice(nextMode) {
+  mode=nextMode; index=0; score=0;
+  const eligible = nextMode === 'bingo' ? knownWords() : practicePool;
+  dialog.showModal();
+  if (nextMode === 'bingo' && !eligible.length) {
+    $('#modeLabel').textContent = 'WORD BINGO';
+    $('#dialogTitle').textContent = 'Learn a word first';
+    $('#exerciseArea').innerHTML = '<div class="quiz"><p class="feedback bad">Bingo only tests words you already know. Reveal one of today’s cards, or return tomorrow when today’s ten words have moved into your learned collection.</p></div>';
+    return;
+  }
+  queue=shuffle(eligible).slice(0,10); renderExercise();
+}
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>openPractice(b.dataset.mode)));
 $('#closeDialog').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',e=>{ if(e.target===dialog) dialog.close(); });
@@ -185,7 +205,7 @@ function renderExercise() {
 }
 
 function renderBingo(w) {
-  const options=shuffle([w,...shuffle(practicePool.filter(x=>x.id!==w.id)).slice(0,8)]);
+  const options=shuffle([w,...shuffle(WORDS.filter(x=>x.id!==w.id)).slice(0,8)]);
   $('#modeLabel').textContent=`${index+1} OF ${queue.length}`; $('#dialogTitle').textContent='Word bingo';
   $('#exerciseArea').innerHTML=`<div class="quiz"><p class="bingo-prompt">Find the Danish word for <strong>${w.en}</strong></p><div class="bingo-grid">${options.map(x=>`<button class="bingo-cell" data-id="${x.id}">${x.da}</button>`).join('')}</div></div>`;
   document.querySelectorAll('.bingo-cell').forEach(cell=>cell.onclick=()=>{if(Number(cell.dataset.id)===w.id){cell.classList.add('correct');score++;setTimeout(()=>{index++;renderExercise()},350)}else cell.classList.add('wrong');});
