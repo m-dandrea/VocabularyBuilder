@@ -151,12 +151,14 @@ function showView(view) {
 }
 
 const profileDialog = $('#profileDialog');
+let pendingProfileId = activeProfileId;
 function renderProfiles() {
   $('#profileList').replaceChildren(...profiles.map((profile) => {
     const button = document.createElement('button');
-    button.className = `profile-choice${profile.id === activeProfileId ? ' active' : ''}`;
+    button.className = `profile-choice${profile.id === pendingProfileId ? ' active' : ''}`;
+    button.setAttribute('aria-pressed', String(profile.id === pendingProfileId));
     button.textContent = profile.name;
-    button.onclick = () => { sessionStorage.setItem('tiOrdSessionProfile', profile.id); localStorage.setItem('tiOrdActiveProfile', profile.id); location.reload(); };
+    button.onclick = () => { pendingProfileId = profile.id; renderProfiles(); };
     return button;
   }));
 }
@@ -170,9 +172,14 @@ $('#moreWordsButton').onclick = () => {
   localStorage.setItem(extraBatchKey, String(extraBatch + 1));
   location.reload();
 };
-$('#profileButton').onclick = () => { renderProfiles(); profileDialog.showModal(); };
+$('#profileButton').onclick = () => { pendingProfileId = activeProfileId; renderProfiles(); profileDialog.showModal(); };
 $('#closeProfiles').onclick = () => profileDialog.close();
 profileDialog.addEventListener('cancel', (event) => { if (needsProfileSelection) event.preventDefault(); });
+$('#continueProfile').onclick = () => {
+  sessionStorage.setItem('tiOrdSessionProfile', pendingProfileId);
+  localStorage.setItem('tiOrdActiveProfile', pendingProfileId);
+  location.reload();
+};
 $('#addProfile').onclick = () => {
   const name = prompt('Name for the new learner?')?.trim();
   if (!name) return;
