@@ -90,12 +90,12 @@
     <dialog id="authDialog">
       <form class="dialog-shell" id="authForm">
         <div class="dialog-head"><div><p class="eyebrow">CLOUD ACCOUNT</p><h2>Welcome to Ti Ord</h2></div></div>
-        <p class="profile-instruction">Open your unique username on any device. A password is optional.</p>
+        <p class="profile-instruction">Open your unique username on any device. A password is required.</p>
         <label class="field-label" for="authUsername">Username</label>
         <input id="authUsername" type="text" autocomplete="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_-]+" required>
         <label class="field-label" for="authPassword">Password</label>
-        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Optional">
-        <p class="auth-hint">Without a password, anyone who knows the username can open the profile.</p>
+        <input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required>
+        <p class="auth-hint">Existing passwordless usernames will set their password when next opened.</p>
         <p class="auth-message" id="authMessage" role="status"></p>
         <button class="primary next" type="submit">Open profile</button>
         <button class="secondary next" type="button" id="createAccount">Create new profile</button>
