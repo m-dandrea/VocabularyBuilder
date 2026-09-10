@@ -96,8 +96,17 @@
 
   window.cloudReady = (async function () {
     if (username) {
-      await openProfile();
-      return;
+      try {
+        await openProfile();
+        return {newAccount:false};
+      } catch (error) {
+        sessionStorage.removeItem('tiOrdUsername');
+        sessionStorage.removeItem('tiOrdPassword');
+        username = '';
+        password = '';
+        showAuth();
+        authMessage(error.message);
+      }
     }
     showAuth();
     await new Promise((resolve) => {
@@ -108,8 +117,8 @@
         authMessage('Opening profile…', false);
         try {
           await openProfile();
-          authDialog.close();
-          resolve({newAccount:false});
+          authMessage('Profile opened. Loading your lesson…', false);
+          location.reload();
         } catch (error) { authMessage(error.message); }
       };
 
@@ -124,8 +133,8 @@
           restoreState(result.state);
           rememberProfile();
           sessionStorage.setItem('tiOrdOpenSettings', '1');
-          authDialog.close();
-          resolve({newAccount:true});
+          authMessage('Profile created. Loading your setup…', false);
+          location.reload();
         } catch (error) { authMessage(error.message); }
       };
     });
