@@ -1,5 +1,5 @@
 // Dictionary data layer: validates stable IDs and the three learning levels.
-const Dictionary = (() => {
+window.Dictionary = (() => {
   const levels = ['easy','medium','advanced'];
   const topics = [
     ['basics','Basics & conversation'], ['numbers-time','Numbers & time'], ['colors','Colors'],
