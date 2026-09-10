@@ -79,11 +79,20 @@
     <dialog id="placementDialog">
       <div class="dialog-shell">
         <div class="dialog-head"><div><p class="eyebrow">VOCABULARY CHECK</p><h2>Words you already know</h2></div><button id="closePlacement" class="close" aria-label="Close">×</button></div>
-        <p class="profile-instruction">Select every Danish word you already know. We’ll add them to your Glossary and avoid them in future lessons.</p>
-        <p class="placement-count" id="placementCount">0 words selected</p>
-        <div id="placementGrid" class="placement-grid"></div>
-        <button id="savePlacement" class="primary next">Save known words</button>
-        <button id="skipPlacement" class="secondary next">Skip for now</button>
+        <section id="placementTopicStep">
+          <p class="profile-instruction">First, select topics you do not want in your lessons. You can change this later in Settings.</p>
+          <div id="placementTopicGrid" class="topic-grid"></div>
+          <p class="placement-count" id="placementTopicMessage">No topics excluded.</p>
+          <button id="continuePlacementTopics" class="primary next">Continue to vocabulary check</button>
+          <button id="skipPlacement" class="secondary next">Skip vocabulary check</button>
+        </section>
+        <section id="placementWordStep" hidden>
+          <p class="profile-instruction">Select every Danish word you already know. We’ll add them to your Glossary and avoid them in future lessons.</p>
+          <p class="placement-count" id="placementCount">0 words selected</p>
+          <div id="placementGrid" class="placement-grid"></div>
+          <button id="savePlacement" class="primary next">Save known words</button>
+          <button id="backToPlacementTopics" class="secondary next">Back to topics</button>
+        </section>
       </div>
     </dialog>
 
