@@ -41,6 +41,17 @@ min|my|pronoun;din|your|pronoun;hans|his|pronoun;hendes|her|pronoun;vores|our|pr
 `.trim().split(';').filter(Boolean).map((row) => { const [da,en,type] = row.split('|'); return [da,en,type,'']; });
 
 const WORDS = [...CORE_WORDS, ...EXTRA_WORDS].map(([da,en,type,sentence], id) => ({id,da,en,type,sentence}));
+const RELATED = {
+  'at være':['at blive','at findes'], 'at have':['at eje','at få'], 'at gå':['at vandre','at komme'], 'at se':['at kigge','at observere'], 'at vide':['at kende','at forstå'],
+  'at sige':['at fortælle','at tale'], 'at spise':['at få noget at spise','at nyde'], 'at drikke':['at tage en slurk','at nyde'], 'at bo':['at leve','at opholde sig'],
+  'at arbejde':['at jobbe','at beskæftige sig'], 'at hjælpe':['at støtte','at assistere'], 'stor':['kæmpe','omfattende'], 'lille':['små','mindre'],
+  'god':['fin','dejlig'], 'dårlig':['ringe','ikke god'], 'smuk':['flot','dejlig'], 'nem':['let','ukompliceret'], 'svær':['vanskelig','kompliceret'],
+  'glad':['lykkelig','tilfreds'], 'træt':['udmattet','søvnig'], 'hurtig':['rask','kvikk'], 'langsom':['træg','ikke hurtig'], 'varm':['hed','lun'], 'kold':['kølig','iskold'],
+  'nu':['lige nu','i øjeblikket'], 'ofte':['tit','hyppigt'], 'måske':['muligvis','eventuelt'], 'meget':['virkelig','rigtig'], 'hjem':['hjemme','tilbage'],
+  'tak':['mange tak','tusind tak'], 'undskyld':['beklager','pardon'], 'ja':['jep','jo'], 'nej':['niks','absolut ikke'],
+  'bil':['vogn','køretøj'], 'cykel':['tohjuler','bike'], 'butik':['forretning','shop'], 'mad':['måltid','spise'], 'kaffe':['en kop kaffe','java'],
+  'ven':['kammerat','bekendt'], 'hus':['bolig','hjem'], 'arbejde':['job','stilling'], 'by':['storby','kommune'], 'sted':['lokation','plads']
+};
 
 const DAY_MS = 86400000;
 const todayKey = new Date().toISOString().slice(0,10);
@@ -80,6 +91,24 @@ function renderWords() {
   }));
   const count = todaysWords.filter(w=>saved.revealed[`${todayKey}-${w.id}`]).length;
   $('#learnedCount').textContent = count; $('#progressBar').style.width = `${count*10}%`;
+  renderWordBank();
+}
+
+function renderWordBank() {
+  const ids = [...new Set(Object.keys(saved.revealed).map((key) => Number(key.slice(key.lastIndexOf('-') + 1))))];
+  const seen = ids.map((id) => WORDS[id]).filter(Boolean).sort((a,b) => a.da.localeCompare(b.da, 'da'));
+  $('#bankCount').textContent = `${seen.length} word${seen.length === 1 ? '' : 's'} saved`;
+  if (!seen.length) {
+    $('#wordBank').innerHTML = '<div class="bank-empty">Reveal a word above and it will stay here for review.</div>';
+    return;
+  }
+  $('#wordBank').replaceChildren(...seen.map((word) => {
+    const entry = document.createElement('article'); entry.className = 'bank-entry';
+    const related = RELATED[word.da];
+    const explanation = word.type === 'verb' ? `An everyday verb meaning “${word.en}”. Learn it with <em>at</em>, then notice its different spoken forms.` : `A common ${word.type} meaning “${word.en}”, useful in everyday conversation.`;
+    entry.innerHTML = `<div class="bank-wordline"><strong>${word.da}</strong><span>${word.en}</span></div><p><b>Explanation:</b> ${explanation}</p><p><b>Related Danish:</b> ${related ? related.join(' · ') : 'No close everyday synonym — learn it with its English meaning.'}</p>`;
+    return entry;
+  }));
 }
 
 const dialog = $('#practiceDialog');
