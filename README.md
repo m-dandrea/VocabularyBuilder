@@ -5,12 +5,13 @@ A small, dependency-free web app for building practical Danish vocabulary.
 ## Features
 
 - Ten common Danish words every day, mixed across word types
+- Separate device-local learner profiles, each with its own fresh progress and glossary
 - 439 built-in everyday words: enough new material for more than six weeks before any rotation
 - Click-to-reveal translations and device-local progress
 - Automatic review of words from the previous day
 - Danish → English and English → Danish recall
 - Word bingo alongside translation exercises
-- A device-local glossary for revealed words, including explanations and related Danish words
+- A device-local glossary in its own view, including explanations and related Danish words
 - Responsive layout for phone and desktop
 - No account, API, dictionary service, or internet search required
 
