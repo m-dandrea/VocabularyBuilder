@@ -16,8 +16,9 @@ body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inte
 button, input { font: inherit; }
 button { cursor: pointer; }
 .topbar { height: 72px; padding: 0 clamp(20px, 5vw, 72px); display: flex; align-items: center; justify-content: space-between; background: var(--white); border-bottom: 1px solid var(--line); }
-.brand { color: var(--ink); text-decoration: none; font-family: Georgia, serif; font-size: 1.25rem; font-weight: 800; letter-spacing: .06em; }
+.brand { padding: 0; border: 0; background: none; color: var(--ink); text-decoration: none; font-family: Georgia, serif; font-size: 1.25rem; font-weight: 800; letter-spacing: .06em; }
 .brand span { color: var(--red); }
+.top-actions, .section-actions { display: flex; gap: 15px; align-items: center; }.nav-button { border: 1px solid var(--line); border-radius: 99px; background: var(--white); padding: 8px 12px; color: var(--ink); font-size: .82rem; }.nav-button:hover { border-color: var(--red); color: var(--red); }
 .streak { font-size: .9rem; color: var(--muted); }
 .streak span { color: var(--red); margin-right: 5px; }
 main { max-width: 1180px; margin: 0 auto; padding: 0 28px 80px; }
@@ -53,6 +54,7 @@ h1 { font-size: clamp(2.6rem, 6vw, 5rem); grid-column: 1; }
 .bank-entry { padding: 18px 20px; background: var(--white); border: 1px solid var(--line); border-radius: 4px; }
 .bank-wordline { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }.bank-wordline strong { font: 700 1.25rem/1.1 Georgia, serif; }.bank-wordline span { color: var(--red); font-weight: 700; }
 .bank-entry p { margin: 12px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.45; }.bank-entry p b { color: var(--ink); }.bank-empty { grid-column: 1 / -1; padding: 30px; border: 1px dashed var(--line); color: var(--muted); text-align: center; }
+.profile-list { display: grid; gap: 10px; padding: 24px 0; }.profile-choice { padding: 14px; background: var(--white); border: 1px solid var(--line); border-radius: 3px; text-align: left; font-weight: 700; }.profile-choice.active { border-color: var(--red); color: var(--red); }
 footer { min-height: 100px; padding: 28px clamp(20px, 5vw, 72px); display: flex; align-items: center; gap: 20px; border-top: 1px solid var(--line); background: var(--white); }
 footer span { font-family: Georgia, serif; font-weight: 800; color: var(--red); } footer p { color: var(--muted); } .text-button { margin-left: auto; border: 0; background: none; color: var(--muted); text-decoration: underline; }
 dialog { width: min(620px, calc(100% - 28px)); padding: 0; border: 0; border-radius: 5px; background: var(--white); box-shadow: 0 24px 80px rgba(0,0,0,.3); }
@@ -66,4 +68,5 @@ dialog::backdrop { background: rgba(24,32,38,.68); }
 .next { width: 100%; margin-top: 14px; }.bingo-prompt { margin: 22px 0 16px; font-size: 1.1rem; }.bingo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }.bingo-cell { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 3px; background: white; font-weight: 700; }.bingo-cell.correct { background: #dcefdc; border-color: #347a40; }.bingo-cell.wrong { animation: shake .25s; background: #fae8e9; }
 @keyframes shake { 25% { transform: translateX(-4px) } 75% { transform: translateX(4px) } }
 @media (max-width: 850px) { .word-grid { grid-template-columns: repeat(2, 1fr); }.practice-grid { grid-template-columns: 1fr 1fr; }.intro { grid-template-columns: 1fr; }.progress-wrap { grid-column: 1; grid-row: auto; margin-top: 32px; } }
-@media (max-width: 520px) { main { padding-inline: 18px; }.topbar { padding-inline: 18px; }.intro { padding-top: 45px; }.word-card { min-height: 130px; padding: 16px; }.practice-grid { grid-template-columns: 1fr; }.practice-card { min-height: 145px; }.section-heading { align-items: start; flex-direction: column; gap: 8px; } footer p { display: none; } }
+@media (max-width: 700px) { .top-actions { gap: 8px; }.streak { display: none; }.nav-button { padding: 7px 9px; } }
+@media (max-width: 520px) { main { padding-inline: 18px; }.topbar { padding-inline: 18px; }.intro { padding-top: 45px; }.word-card { min-height: 130px; padding: 16px; }.practice-grid { grid-template-columns: 1fr; }.practice-card { min-height: 145px; }.section-heading { align-items: start; flex-direction: column; gap: 8px; }.section-actions { align-items: start; flex-direction: column; gap: 10px; } footer p { display: none; } }
