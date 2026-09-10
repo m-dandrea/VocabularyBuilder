@@ -1,6 +1,6 @@
 // 1,000 Danish learning entries. Curated entries plus FreeDict dan-eng (GPL-2.0),
 // ranked with FrequencyWords Danish 2018 data (MIT). Keep IDs stable across updates.
-const DICTIONARY_WORDS = [
+window.DICTIONARY_WORDS = [
   {
     "da": "jeg",
     "en": "I",
@@ -10002,4 +10002,3 @@ const DICTIONARY_WORDS = [
     "frequencyRank": null
   }
 ];
-
