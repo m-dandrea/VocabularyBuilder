@@ -69,6 +69,9 @@ activeProfile.wordCount = [5,10,20].includes(Number(activeProfile.wordCount)) ? 
 activeProfile.difficulty = Dictionary.levels.includes(activeProfile.difficulty) ? activeProfile.difficulty : 'easy';
 const knownStorageKey = `tiOrdKnown-${activeProfileId}`;
 const placementKnownIds = new Set(JSON.parse(localStorage.getItem(knownStorageKey) || '[]'));
+const skippedTopicsKey = `tiOrdSkippedTopics-${activeProfileId}`;
+const skippedTopics = new Set(JSON.parse(localStorage.getItem(skippedTopicsKey) || '[]'));
+const availableWords = WORDS.filter((word) => !skippedTopics.has(word.topic));
 const extraBatchKey = `tiOrdExtraBatch-${activeProfileId}-${todayKey}`;
 const extraBatch = Number(localStorage.getItem(extraBatchKey) || 0);
 const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
@@ -77,10 +80,10 @@ const batch = (sequence) => {
   for (let index = 0; index < activeProfile.wordCount; index++) {
     const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
     const alreadySelected = new Set(selected.map((word) => word.id));
-    let choices = WORDS.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
-    if (!choices.length) choices = WORDS.filter((word) => word.type === type && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
-    if (!choices.length) choices = WORDS.filter((word) => !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
-    if (!choices.length) choices = WORDS.filter((word) => !alreadySelected.has(word.id));
+    let choices = availableWords.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
+    if (!choices.length) choices = availableWords.filter((word) => word.type === type && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
+    if (!choices.length) choices = availableWords.filter((word) => !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
+    if (!choices.length) choices = availableWords.filter((word) => !alreadySelected.has(word.id));
     const choiceIndex = (sequence * 5 + index * 11) % choices.length;
     selected.push(choices[choiceIndex]);
   }
@@ -200,13 +203,33 @@ $('#settingsForm').onsubmit = (event) => {
 
 const placementDialog = $('#placementDialog');
 let placementSelection = new Set(placementKnownIds);
-function updatePlacementCount() {
-  const count = placementSelection.size;
-  $('#placementCount').textContent = `${count} word${count === 1 ? '' : 's'} selected`;
+let placementSkippedTopics = new Set(skippedTopics);
+function renderPlacementTopics() {
+  $('#placementTopicGrid').replaceChildren(...Dictionary.topics.map((topic) => {
+    const count = WORDS.filter((word) => word.topic === topic.id).length;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `topic-choice${placementSkippedTopics.has(topic.id) ? ' selected' : ''}`;
+    button.setAttribute('aria-pressed', String(placementSkippedTopics.has(topic.id)));
+    button.innerHTML = `<strong>${topic.label}</strong><small>${count} words</small>`;
+    button.onclick = () => {
+      if (placementSkippedTopics.has(topic.id)) placementSkippedTopics.delete(topic.id);
+      else placementSkippedTopics.add(topic.id);
+      renderPlacementTopics();
+    };
+    return button;
+  }));
+  $('#placementTopicMessage').textContent = placementSkippedTopics.size ? `${placementSkippedTopics.size} topic${placementSkippedTopics.size === 1 ? '' : 's'} will be excluded from lessons.` : 'No topics excluded.';
 }
-function openPlacement() {
-  placementSelection = new Set(placementKnownIds);
-  $('#placementGrid').replaceChildren(...WORDS.map((word) => {
+function showPlacementWords() {
+  if (placementSkippedTopics.size === Dictionary.topics.length) {
+    $('#placementTopicMessage').textContent = 'Keep at least one topic for your lessons.';
+    return;
+  }
+  $('#placementTopicStep').hidden = true;
+  $('#placementWordStep').hidden = false;
+  const quizWords = WORDS.filter((word) => !placementSkippedTopics.has(word.topic));
+  $('#placementGrid').replaceChildren(...quizWords.map((word) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `placement-word${placementSelection.has(word.id) ? ' selected' : ''}`;
@@ -222,14 +245,28 @@ function openPlacement() {
     return button;
   }));
   updatePlacementCount();
+}
+function updatePlacementCount() {
+  const count = placementSelection.size;
+  $('#placementCount').textContent = `${count} word${count === 1 ? '' : 's'} selected`;
+}
+function openPlacement() {
+  placementSelection = new Set(placementKnownIds);
+  placementSkippedTopics = new Set(skippedTopics);
+  $('#placementTopicStep').hidden = false;
+  $('#placementWordStep').hidden = true;
+  renderPlacementTopics();
   placementDialog.showModal();
 }
+$('#continuePlacementTopics').onclick = showPlacementWords;
+$('#backToPlacementTopics').onclick = () => { $('#placementWordStep').hidden = true; $('#placementTopicStep').hidden = false; renderPlacementTopics(); };
 $('#savePlacement').onclick = () => {
   localStorage.setItem(knownStorageKey, JSON.stringify([...placementSelection]));
+  localStorage.setItem(skippedTopicsKey, JSON.stringify([...placementSkippedTopics]));
   saveCloud();
   location.reload();
 };
-$('#skipPlacement').onclick = () => placementDialog.close();
+$('#skipPlacement').onclick = () => { localStorage.setItem(skippedTopicsKey, JSON.stringify([...placementSkippedTopics])); saveCloud(); location.reload(); };
 $('#closePlacement').onclick = () => placementDialog.close();
 
 function renderWordBank() {
