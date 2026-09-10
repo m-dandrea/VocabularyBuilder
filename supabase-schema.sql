@@ -24,3 +24,22 @@ on public.user_state for update
 to authenticated
 using ((select auth.uid()) = user_id)
 with check ((select auth.uid()) = user_id);
+
+create table public.learner_accounts (
+  username text primary key,
+  password_hash text,
+  password_salt text,
+  state jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  constraint learner_username_format check (username ~ '^[a-z0-9_-]{3,24}$'),
+  constraint learner_password_pair check ((password_hash is null) = (password_salt is null))
+);
+
+alter table public.learner_accounts enable row level security;
+revoke all on table public.learner_accounts from anon, authenticated;
+
+create policy "No direct client access"
+on public.learner_accounts for all
+to anon, authenticated
+using (false)
+with check (false);
