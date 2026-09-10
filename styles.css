@@ -63,6 +63,10 @@ h1 { font-size: clamp(2.6rem, 6vw, 5rem); grid-column: 1; }
 .auth-message.error { color: var(--red); }
 .auth-hint { margin: 8px 0 0; color: var(--muted); font-size: .8rem; }
 .placement-count { margin: 20px 0 10px; color: var(--muted); font-weight: 700; }
+.topic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+.topic-choice { padding: 12px; border: 1px solid var(--line); border-radius: 3px; background: white; color: var(--ink); text-align: left; }
+.topic-choice strong, .topic-choice small { display: block; }.topic-choice small { margin-top: 4px; color: var(--muted); }
+.topic-choice.selected { border-color: var(--red); background: #fff0f1; color: var(--red); }
 .placement-grid { max-height: 42vh; overflow-y: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 2px; }
 .placement-word { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 3px; background: white; color: var(--ink); text-align: left; }
 .placement-word strong, .placement-word small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -82,4 +86,4 @@ dialog::backdrop { background: rgba(24,32,38,.68); }
 @keyframes shake { 25% { transform: translateX(-4px) } 75% { transform: translateX(4px) } }
 @media (max-width: 850px) { .word-grid { grid-template-columns: repeat(2, 1fr); }.practice-grid { grid-template-columns: 1fr 1fr; }.intro { grid-template-columns: 1fr; }.progress-wrap { grid-column: 1; grid-row: auto; margin-top: 32px; } }
 @media (max-width: 700px) { .top-actions { gap: 8px; }.streak { display: none; }.nav-button { padding: 7px 9px; } }
-@media (max-width: 520px) { main { padding-inline: 18px; }.topbar { padding-inline: 18px; }.intro { padding-top: 45px; }.word-card { min-height: 130px; padding: 16px; }.practice-grid, .placement-grid { grid-template-columns: 1fr; }.practice-card { min-height: 145px; }.section-heading { align-items: start; flex-direction: column; gap: 8px; }.section-actions { align-items: start; flex-direction: column; gap: 10px; } footer p { display: none; } }
+@media (max-width: 520px) { main { padding-inline: 18px; }.topbar { padding-inline: 18px; }.intro { padding-top: 45px; }.word-card { min-height: 130px; padding: 16px; }.practice-grid, .placement-grid, .topic-grid { grid-template-columns: 1fr; }.practice-card { min-height: 145px; }.section-heading { align-items: start; flex-direction: column; gap: 8px; }.section-actions { align-items: start; flex-direction: column; gap: 10px; } footer p { display: none; } }
