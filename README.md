@@ -11,6 +11,7 @@ A small, dependency-free web app for building practical Danish vocabulary.
 - Per-learner daily lesson size: 5, 10, or 20 words
 - An option to load another full set immediately without waiting for the next day
 - Easy, medium, and advanced vocabulary classification in the dedicated Dictionary data layer
+- Immediate fallback within a word category when a difficulty level has too few unique words
 - 439 built-in everyday words: enough new material for more than six weeks before any rotation
 - Click-to-reveal translations and device-local progress
 - Automatic review of words from the previous day
