@@ -117,12 +117,11 @@
         if (password && password.length < 6) return authMessage('A password must contain at least 6 characters.');
         authMessage('Creating profile…', false);
         try {
-          const lastOwner = localStorage.getItem('tiOrdCloudOwner');
-          if (lastOwner && lastOwner !== username) clearState();
+          clearState();
           const result = await request('create', collectState());
           restoreState(result.state);
           rememberProfile();
-          sessionStorage.setItem('tiOrdOpenPlacement', '1');
+          sessionStorage.setItem('tiOrdOpenSettings', '1');
           authDialog.close();
           resolve();
         } catch (error) { authMessage(error.message); }
