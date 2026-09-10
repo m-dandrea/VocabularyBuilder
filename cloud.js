@@ -1,7 +1,7 @@
 (function () {
   const endpoint = window.SUPABASE_CONFIG.profileEndpoint;
   const authDialog = document.querySelector('#authDialog');
-  const appKey = (key) => key === 'tiOrdProfiles' || key === 'tiOrdActiveProfile' || key === 'tiOrdProgress' || key.startsWith('tiOrdProgress-') || key.startsWith('tiOrdKnown-') || key.startsWith('tiOrdExtraBatch-');
+  const appKey = (key) => key === 'tiOrdDataVersion' || key === 'tiOrdProfiles' || key === 'tiOrdActiveProfile' || key === 'tiOrdProgress' || key.startsWith('tiOrdProgress-') || key.startsWith('tiOrdKnown-') || key.startsWith('tiOrdExtraBatch-');
   let username = sessionStorage.getItem('tiOrdUsername') || '';
   let password = sessionStorage.getItem('tiOrdPassword') || '';
   let saveTimer = null;
@@ -12,6 +12,7 @@
       const key = localStorage.key(index);
       if (appKey(key)) state[key] = localStorage.getItem(key);
     }
+    state.tiOrdDataVersion = '2';
     return state;
   }
 
@@ -73,7 +74,7 @@
   async function openProfile() {
     if (sessionStorage.getItem('tiOrdCloudPending') === '1' && localStorage.getItem('tiOrdCloudOwner') === username) await uploadState();
     const result = await request('load');
-    restoreState(result.state);
+    restoreState(result.state?.tiOrdDataVersion === '2' ? result.state : {});
     rememberProfile();
   }
 
