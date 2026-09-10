@@ -10,14 +10,14 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Ti Ord home"><span>TI</span> ORD</a>
-      <div class="streak" aria-label="Current learning streak"><span>●</span> <strong id="streakCount">1</strong> day streak</div>
+      <button class="brand" id="homeButton" aria-label="Ti Ord home"><span>TI</span> ORD</button>
+      <div class="top-actions"><button class="nav-button" id="glossaryButton">Glossary</button><button class="nav-button" id="profileButton">Learner: <strong id="profileName">Matt</strong></button><div class="streak" aria-label="Current learning streak"><span>●</span> <strong id="streakCount">1</strong> day streak</div></div>
     </header>
 
     <main>
-      <section class="intro">
+      <section class="intro lesson-only">
         <p class="eyebrow" id="todayLabel">TODAY</p>
-        <h1>Godmorgen, Matt.</h1>
+        <h1 id="greeting">Godmorgen, Matt.</h1>
         <p>Ten useful words. A few minutes. One step closer to Danish.</p>
         <div class="progress-wrap" aria-label="Daily progress">
           <div class="progress-copy"><span>Today’s progress</span><strong><span id="learnedCount">0</span> / 10</strong></div>
@@ -25,7 +25,7 @@
         </div>
       </section>
 
-      <section class="words-section" aria-labelledby="wordsHeading">
+      <section class="words-section lesson-only" aria-labelledby="wordsHeading">
         <div class="section-heading">
           <div><p class="eyebrow">DAGENS ORD</p><h2 id="wordsHeading">Today’s words</h2></div>
           <p>Tap a card to reveal its meaning.</p>
@@ -33,7 +33,7 @@
         <div id="wordGrid" class="word-grid"></div>
       </section>
 
-      <section class="practice-section" aria-labelledby="practiceHeading">
+      <section class="practice-section lesson-only" aria-labelledby="practiceHeading">
         <div class="section-heading">
           <div><p class="eyebrow">ØVELSER</p><h2 id="practiceHeading">Ready to practise?</h2></div>
           <p id="reviewNote">Includes words from previous days.</p>
@@ -45,10 +45,10 @@
         </div>
       </section>
 
-      <section class="bank-section" aria-labelledby="bankHeading">
+      <section class="bank-section" id="glossarySection" aria-labelledby="bankHeading" hidden>
         <div class="section-heading">
           <div><p class="eyebrow">GLOSSARY</p><h2 id="bankHeading">Glossary</h2></div>
-          <p id="bankCount">0 words saved</p>
+          <div class="section-actions"><p id="bankCount">0 words saved</p><button class="nav-button" id="backToLesson">Daily lesson</button></div>
         </div>
         <div id="wordBank" class="word-bank"></div>
       </section>
@@ -60,6 +60,14 @@
       <div class="dialog-shell">
         <div class="dialog-head"><div><p class="eyebrow" id="modeLabel">PRACTICE</p><h2 id="dialogTitle">Translate</h2></div><button id="closeDialog" class="close" aria-label="Close">×</button></div>
         <div id="exerciseArea"></div>
+      </div>
+    </dialog>
+
+    <dialog id="profileDialog">
+      <div class="dialog-shell">
+        <div class="dialog-head"><div><p class="eyebrow">LEARNERS</p><h2>Choose a learner</h2></div><button id="closeProfiles" class="close" aria-label="Close">×</button></div>
+        <div id="profileList" class="profile-list"></div>
+        <button id="addProfile" class="primary next">Add learner</button>
       </div>
     </dialog>
 
