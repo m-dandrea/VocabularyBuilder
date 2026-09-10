@@ -1,4 +1,7 @@
 window.cloudReady.then((cloudSession = {}) => {
+const Dictionary = window.Dictionary;
+const DICTIONARY_WORDS = window.DICTIONARY_WORDS;
+if (!Dictionary || !Array.isArray(DICTIONARY_WORDS)) throw new Error('The dictionary did not load. Please refresh the page.');
 const CORE_WORDS = [
   ['at være','to be','verb','Jeg vil gerne ___ hjemme.'],['at have','to have','verb','Jeg vil gerne ___ en kaffe.'],['at gøre','to do','verb','Hvad skal vi ___?'],['at sige','to say','verb','Hvad vil du ___?'],['at gå','to go / walk','verb','Jeg skal ___ nu.'],
   ['at komme','to come','verb','Kan du ___ i morgen?'],['at se','to see','verb','Jeg kan ___ havet.'],['at vide','to know','verb','Jeg vil gerne ___ mere.'],['at kunne','can / to be able to','verb','Det er godt at ___ tale lidt dansk.'],['at ville','to want','verb','Det er okay ikke at ___ med.'],
