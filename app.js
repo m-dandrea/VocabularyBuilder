@@ -58,7 +58,9 @@ const todayKey = new Date().toISOString().slice(0,10);
 const dayNumber = Math.floor((Date.now() - Date.UTC(2026,0,1)) / DAY_MS);
 let profiles = JSON.parse(localStorage.getItem('tiOrdProfiles') || '[]');
 if (!profiles.length) profiles = [{id:'learner-1', name:'Matt', wordCount:10, difficulty:'easy'}];
-let activeProfileId = localStorage.getItem('tiOrdActiveProfile') || profiles[0].id;
+const sessionProfileId = sessionStorage.getItem('tiOrdSessionProfile');
+const needsProfileSelection = !sessionProfileId;
+let activeProfileId = sessionProfileId || localStorage.getItem('tiOrdActiveProfile') || profiles[0].id;
 if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId = profiles[0].id;
 const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
 activeProfile.wordCount = [5,10,20].includes(Number(activeProfile.wordCount)) ? Number(activeProfile.wordCount) : 10;
@@ -76,13 +78,16 @@ const practicePool = [...todaysWords, ...reviewWords.filter(w=>!todaysWords.some
 const legacyProgress = localStorage.getItem('tiOrdProgress');
 const progressKey = `tiOrdProgress-${activeProfileId}`;
 const saved = JSON.parse(localStorage.getItem(progressKey) || (activeProfileId === 'learner-1' ? legacyProgress : null) || '{}');
-saved.seenDays = Array.from(new Set([...(saved.seenDays || []), todayKey])).sort();
 saved.revealed = saved.revealed || {};
 saved.presentedByDay = saved.presentedByDay || {};
-saved.presentedByDay[todayKey] = todaysWords.map((word) => word.id);
+saved.seenDays = saved.seenDays || [];
+if (!needsProfileSelection) {
+  saved.seenDays = Array.from(new Set([...saved.seenDays, todayKey])).sort();
+  saved.presentedByDay[todayKey] = todaysWords.map((word) => word.id);
+}
 localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
 localStorage.setItem('tiOrdActiveProfile', activeProfileId);
-localStorage.setItem(progressKey, JSON.stringify(saved));
+if (!needsProfileSelection) localStorage.setItem(progressKey, JSON.stringify(saved));
 
 const $ = (s) => document.querySelector(s);
 const shuffle = (a) => [...a].sort(() => Math.random() - .5);
@@ -140,7 +145,7 @@ function renderProfiles() {
     const button = document.createElement('button');
     button.className = `profile-choice${profile.id === activeProfileId ? ' active' : ''}`;
     button.textContent = profile.name;
-    button.onclick = () => { localStorage.setItem('tiOrdActiveProfile', profile.id); location.reload(); };
+    button.onclick = () => { sessionStorage.setItem('tiOrdSessionProfile', profile.id); localStorage.setItem('tiOrdActiveProfile', profile.id); location.reload(); };
     return button;
   }));
 }
@@ -150,12 +155,14 @@ $('#backToLesson').onclick = () => showView('lesson');
 $('#homeButton').onclick = () => showView('lesson');
 $('#profileButton').onclick = () => { renderProfiles(); profileDialog.showModal(); };
 $('#closeProfiles').onclick = () => profileDialog.close();
+profileDialog.addEventListener('cancel', (event) => { if (needsProfileSelection) event.preventDefault(); });
 $('#addProfile').onclick = () => {
   const name = prompt('Name for the new learner?')?.trim();
   if (!name) return;
   const id = `learner-${Date.now()}`;
   profiles.push({id, name, wordCount:10, difficulty:'easy'});
   localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
+  sessionStorage.setItem('tiOrdSessionProfile', id);
   localStorage.setItem('tiOrdActiveProfile', id);
   location.reload();
 };
@@ -243,3 +250,8 @@ function registerWebMCP() {
 }
 
 renderWords(); registerWebMCP();
+if (needsProfileSelection) {
+  document.body.classList.add('profile-required');
+  renderProfiles();
+  profileDialog.showModal();
+}
