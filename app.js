@@ -56,19 +56,32 @@ const RELATED = {
 const DAY_MS = 86400000;
 const todayKey = new Date().toISOString().slice(0,10);
 const dayNumber = Math.floor((Date.now() - Date.UTC(2026,0,1)) / DAY_MS);
-const batch = (offset = 0) => Array.from({length:10},(_,i)=>WORDS[((dayNumber + offset) * 10 + i) % WORDS.length]);
+const DAILY_TYPES = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
+const batch = (offset = 0) => DAILY_TYPES.map((type, index) => {
+  const choices = WORDS.filter((word) => word.type === type);
+  return choices[((dayNumber + offset) * 5 + index * 11) % choices.length];
+});
 const todaysWords = batch(0);
 const reviewWords = dayNumber > 0 ? batch(-1) : todaysWords;
 const practicePool = [...todaysWords, ...reviewWords.filter(w=>!todaysWords.some(t=>t.id===w.id))];
-const saved = JSON.parse(localStorage.getItem('tiOrdProgress') || '{}');
+let profiles = JSON.parse(localStorage.getItem('tiOrdProfiles') || '[]');
+if (!profiles.length) profiles = [{id:'learner-1', name:'Matt'}];
+let activeProfileId = localStorage.getItem('tiOrdActiveProfile') || profiles[0].id;
+if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId = profiles[0].id;
+const legacyProgress = localStorage.getItem('tiOrdProgress');
+const progressKey = `tiOrdProgress-${activeProfileId}`;
+const saved = JSON.parse(localStorage.getItem(progressKey) || (activeProfileId === 'learner-1' ? legacyProgress : null) || '{}');
 saved.seenDays = Array.from(new Set([...(saved.seenDays || []), todayKey])).sort();
 saved.revealed = saved.revealed || {};
-localStorage.setItem('tiOrdProgress', JSON.stringify(saved));
+localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
+localStorage.setItem('tiOrdActiveProfile', activeProfileId);
+localStorage.setItem(progressKey, JSON.stringify(saved));
 
 const $ = (s) => document.querySelector(s);
 const shuffle = (a) => [...a].sort(() => Math.random() - .5);
 const clean = (s) => s.toLowerCase().trim().replace(/[.,!?]/g,'').replace(/^at /,'').replace(/^(en|et) /,'');
 const accepted = (input, answer) => answer.split('/').some(a => clean(a) === clean(input));
+const saveProgress = () => localStorage.setItem(progressKey, JSON.stringify(saved));
 
 function consecutiveStreak(days) {
   const set = new Set(days); let streak = 0; const date = new Date(`${todayKey}T12:00:00Z`);
@@ -77,6 +90,9 @@ function consecutiveStreak(days) {
 }
 
 function renderWords() {
+  const activeProfile = profiles.find((profile) => profile.id === activeProfileId);
+  $('#profileName').textContent = activeProfile.name;
+  $('#greeting').textContent = `Godmorgen, ${activeProfile.name}.`;
   $('#todayLabel').textContent = new Intl.DateTimeFormat('en-DK',{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
   $('#streakCount').textContent = consecutiveStreak(saved.seenDays);
   $('#reviewNote').textContent = dayNumber > 0 ? 'Includes yesterday’s words for review.' : 'Today’s words will become tomorrow’s review.';
@@ -86,13 +102,46 @@ function renderWords() {
     card.className = `word-card${isOpen ? ' revealed' : ''}`;
     card.setAttribute('aria-pressed',String(isOpen));
     card.innerHTML = `<span class="word-number">${String(i+1).padStart(2,'0')}</span><span class="word-main">${isOpen ? word.en : word.da}</span><span class="word-type">${isOpen ? word.da : word.type}</span>`;
-    card.addEventListener('click',()=>{ saved.revealed[`${todayKey}-${word.id}`]=true; localStorage.setItem('tiOrdProgress',JSON.stringify(saved)); renderWords(); });
+    card.addEventListener('click',()=>{ saved.revealed[`${todayKey}-${word.id}`]=true; saveProgress(); renderWords(); });
     return card;
   }));
   const count = todaysWords.filter(w=>saved.revealed[`${todayKey}-${w.id}`]).length;
   $('#learnedCount').textContent = count; $('#progressBar').style.width = `${count*10}%`;
   renderWordBank();
 }
+
+function showView(view) {
+  const glossary = view === 'glossary';
+  document.querySelectorAll('.lesson-only').forEach((element) => { element.hidden = glossary; });
+  $('#glossarySection').hidden = !glossary;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+const profileDialog = $('#profileDialog');
+function renderProfiles() {
+  $('#profileList').replaceChildren(...profiles.map((profile) => {
+    const button = document.createElement('button');
+    button.className = `profile-choice${profile.id === activeProfileId ? ' active' : ''}`;
+    button.textContent = profile.name;
+    button.onclick = () => { localStorage.setItem('tiOrdActiveProfile', profile.id); location.reload(); };
+    return button;
+  }));
+}
+
+$('#glossaryButton').onclick = () => showView('glossary');
+$('#backToLesson').onclick = () => showView('lesson');
+$('#homeButton').onclick = () => showView('lesson');
+$('#profileButton').onclick = () => { renderProfiles(); profileDialog.showModal(); };
+$('#closeProfiles').onclick = () => profileDialog.close();
+$('#addProfile').onclick = () => {
+  const name = prompt('Name for the new learner?')?.trim();
+  if (!name) return;
+  const id = `learner-${Date.now()}`;
+  profiles.push({id, name});
+  localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
+  localStorage.setItem('tiOrdActiveProfile', id);
+  location.reload();
+};
 
 function renderWordBank() {
   const ids = [...new Set(Object.keys(saved.revealed).map((key) => Number(key.slice(key.lastIndexOf('-') + 1))))];
@@ -142,7 +191,7 @@ function renderBingo(w) {
   document.querySelectorAll('.bingo-cell').forEach(cell=>cell.onclick=()=>{if(Number(cell.dataset.id)===w.id){cell.classList.add('correct');score++;setTimeout(()=>{index++;renderExercise()},350)}else cell.classList.add('wrong');});
 }
 
-$('#resetButton').addEventListener('click',()=>{if(confirm('Reset all saved progress on this device?')){localStorage.removeItem('tiOrdProgress');location.reload();}});
+$('#resetButton').addEventListener('click',()=>{if(confirm('Reset progress for this learner?')){localStorage.removeItem(progressKey);location.reload();}});
 
 function registerWebMCP() {
   if(!document.modelContext?.registerTool) return;
