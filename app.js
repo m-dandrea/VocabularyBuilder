@@ -95,8 +95,6 @@ const batch = (sequence) => {
 };
 const dailySequence = dayNumber * 50;
 const todaysWords = batch(dailySequence + extraBatch);
-const reviewWords = extraBatch > 0 ? batch(dailySequence + extraBatch - 1) : dayNumber > 0 ? batch((dayNumber - 1) * 50) : todaysWords;
-const practicePool = [...todaysWords, ...reviewWords.filter(w=>!todaysWords.some(t=>t.id===w.id))];
 const legacyProgress = localStorage.getItem('tiOrdProgress');
 const progressKey = `tiOrdProgress-${activeProfileId}`;
 const saved = JSON.parse(localStorage.getItem(progressKey) || (activeProfileId === 'learner-1' ? legacyProgress : null) || '{}');
@@ -293,12 +291,13 @@ const dialog = $('#practiceDialog');
 let mode = '', queue = [], index = 0, score = 0;
 function openPractice(nextMode) {
   mode=nextMode; index=0; score=0;
-  const eligible = nextMode === 'bingo' ? knownWords() : practicePool;
+  const eligible = knownWords();
   dialog.showModal();
-  if (nextMode === 'bingo' && !eligible.length) {
-    $('#modeLabel').textContent = 'WORD BINGO';
+  if (!eligible.length) {
+    const isBingo = nextMode === 'bingo';
+    $('#modeLabel').textContent = isBingo ? 'WORD BINGO' : 'TRANSLATION';
     $('#dialogTitle').textContent = 'Learn a word first';
-    $('#exerciseArea').innerHTML = '<div class="quiz"><p class="feedback bad">Bingo only tests words you already know. Reveal one of today’s cards, or return tomorrow when today’s ten words have moved into your learned collection.</p></div>';
+    $('#exerciseArea').innerHTML = `<div class="quiz"><p class="feedback bad">${isBingo ? 'Bingo' : 'Translation practice'} only tests words you have already discovered. Reveal one of today’s cards first.</p></div>`;
     return;
   }
   queue=shuffle(eligible).slice(0,10); renderExercise();
