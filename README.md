@@ -2,7 +2,13 @@
 
 **A simple Danish vocabulary trainer for building practical vocabulary a few words at a time.**
 
-[Try Ti Ord](https://m-dandrea.github.io/VocabularyBuilder/)
+<p align="center">
+  <img src="assets/ti-ord-preview.svg" alt="Ti Ord Danish vocabulary trainer preview" width="100%">
+</p>
+
+<p align="center">
+  <strong><a href="https://m-dandrea.github.io/VocabularyBuilder/">Try Ti Ord →</a></strong>
+</p>
 
 Ti Ord is a lightweight web application designed for learners who want a structured way to expand their Danish vocabulary without turning practice into a large daily task. It combines short daily lessons, vocabulary placement, review exercises, and a personal glossary in a responsive interface that works on both desktop and mobile.
 
