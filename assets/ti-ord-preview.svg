@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">Ti Ord — Danish Vocabulary Builder</title>
+  <desc id="desc">A branded preview showing Ti Ord daily Danish vocabulary cards and practice modes.</desc>
+  <rect width="1280" height="640" fill="#f7f3ea"/>
+  <rect x="0" y="0" width="1280" height="74" fill="#fffdf8"/>
+  <line x1="0" y1="74" x2="1280" y2="74" stroke="#d8d0c2"/>
+
+  <text x="74" y="47" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#182026" letter-spacing="2">TI <tspan fill="#a51c30">ORD</tspan></text>
+  <text x="1134" y="47" text-anchor="end" font-family="Arial, sans-serif" font-size="15" fill="#6f6c65">Danish vocabulary, daily.</text>
+
+  <text x="76" y="153" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#a51c30" letter-spacing="3">PRACTICAL DANISH</text>
+  <text x="74" y="224" font-family="Georgia, serif" font-size="58" font-weight="700" fill="#182026">Ten words.</text>
+  <text x="74" y="286" font-family="Georgia, serif" font-size="58" font-weight="700" fill="#182026">A little every day.</text>
+  <text x="76" y="335" font-family="Arial, sans-serif" font-size="20" fill="#6f6c65">Build useful vocabulary with short lessons, review and recall.</text>
+
+  <rect x="76" y="384" width="252" height="54" rx="5" fill="#a51c30"/>
+  <text x="202" y="418" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#ffffff">1,000 Danish words</text>
+  <rect x="342" y="384" width="224" height="54" rx="5" fill="#173f5f"/>
+  <text x="454" y="418" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Cloud-synced</text>
+
+  <text x="76" y="505" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#182026">TODAY'S PROGRESS</text>
+  <text x="565" y="505" text-anchor="end" font-family="Arial, sans-serif" font-size="14" fill="#6f6c65">6 / 10 words</text>
+  <rect x="76" y="525" width="490" height="12" rx="6" fill="#ded6c8"/>
+  <rect x="76" y="525" width="294" height="12" rx="6" fill="#a51c30"/>
+
+  <g transform="translate(650 126)">
+    <rect x="0" y="0" width="554" height="434" rx="10" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="34" y="48" font-family="Georgia, serif" font-size="27" font-weight="700" fill="#182026">Today's words</text>
+    <text x="518" y="47" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#6f6c65">MONDAY · 10 WORDS</text>
+
+    <g transform="translate(34 78)">
+      <rect width="150" height="122" rx="5" fill="#a51c30"/>
+      <text x="18" y="24" font-family="Georgia, serif" font-size="12" font-weight="700" fill="#ffffff" opacity=".65">01</text>
+      <text x="18" y="73" font-family="Georgia, serif" font-size="24" font-weight="700" fill="#ffffff">arbejde</text>
+      <text x="18" y="101" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" opacity=".78">work / job</text>
+    </g>
+    <g transform="translate(202 78)">
+      <rect width="150" height="122" rx="5" fill="#fffdf8" stroke="#d8d0c2"/>
+      <text x="18" y="24" font-family="Georgia, serif" font-size="12" font-weight="700" fill="#182026" opacity=".55">02</text>
+      <text x="18" y="73" font-family="Georgia, serif" font-size="24" font-weight="700" fill="#182026">måske</text>
+      <text x="18" y="101" font-family="Arial, sans-serif" font-size="12" fill="#6f6c65">adverb</text>
+    </g>
+    <g transform="translate(370 78)">
+      <rect width="150" height="122" rx="5" fill="#fffdf8" stroke="#d8d0c2"/>
+      <text x="18" y="24" font-family="Georgia, serif" font-size="12" font-weight="700" fill="#182026" opacity=".55">03</text>
+      <text x="18" y="73" font-family="Georgia, serif" font-size="24" font-weight="700" fill="#182026">at vælge</text>
+      <text x="18" y="101" font-family="Arial, sans-serif" font-size="12" fill="#6f6c65">verb</text>
+    </g>
+
+    <text x="34" y="238" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#182026">PRACTICE</text>
+    <g transform="translate(34 257)">
+      <rect width="150" height="120" rx="5" fill="#a51c30"/>
+      <text x="18" y="31" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">DA → EN</text>
+      <text x="18" y="82" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#ffffff">Recall</text>
+      <text x="18" y="102" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" opacity=".72">Danish to English</text>
+    </g>
+    <g transform="translate(202 257)">
+      <rect width="150" height="120" rx="5" fill="#173f5f"/>
+      <text x="18" y="31" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">EN → DA</text>
+      <text x="18" y="82" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#ffffff">Recall</text>
+      <text x="18" y="102" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" opacity=".72">English to Danish</text>
+    </g>
+    <g transform="translate(370 257)">
+      <rect width="150" height="120" rx="5" fill="#efb93f"/>
+      <text x="18" y="31" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#182026">BINGO</text>
+      <text x="18" y="82" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#182026">Recognise</text>
+      <text x="18" y="102" font-family="Arial, sans-serif" font-size="11" fill="#182026" opacity=".7">Quick word matching</text>
+    </g>
+  </g>
+
+  <text x="76" y="601" font-family="Arial, sans-serif" font-size="14" fill="#6f6c65">m-dandrea.github.io/VocabularyBuilder</text>
+</svg>
