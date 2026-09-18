@@ -78,23 +78,6 @@ const topicFilteredWords = WORDS.filter((word) => !skippedTopics.has(word.topic)
 const availableWords = topicFilteredWords.length ? topicFilteredWords : WORDS;
 const extraBatchKey = `tiOrdExtraBatch-${activeProfileId}-${todayKey}`;
 const extraBatch = Number(localStorage.getItem(extraBatchKey) || 0);
-const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
-const batch = (sequence) => {
-  const selected = [];
-  for (let index = 0; index < activeProfile.wordCount; index++) {
-    const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
-    const alreadySelected = new Set(selected.map((word) => word.id));
-    let choices = availableWords.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
-    if (!choices.length) choices = availableWords.filter((word) => word.type === type && !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
-    if (!choices.length) choices = availableWords.filter((word) => !placementKnownIds.has(word.id) && !alreadySelected.has(word.id));
-    if (!choices.length) choices = availableWords.filter((word) => !alreadySelected.has(word.id));
-    const choiceIndex = (sequence * 5 + index * 11) % choices.length;
-    selected.push(choices[choiceIndex]);
-  }
-  return selected;
-};
-const dailySequence = dayNumber * 50;
-const todaysWords = batch(dailySequence + extraBatch);
 const legacyProgress = localStorage.getItem('tiOrdProgress');
 const progressKey = `tiOrdProgress-${activeProfileId}`;
 const saved = JSON.parse(localStorage.getItem(progressKey) || (activeProfileId === 'learner-1' ? legacyProgress : null) || '{}');
@@ -102,6 +85,39 @@ saved.revealed = saved.revealed || {};
 saved.presentedByDay = saved.presentedByDay || {};
 saved.completedBatchIds = saved.completedBatchIds || [];
 saved.seenDays = saved.seenDays || [];
+saved.batchesByKey = saved.batchesByKey || {};
+const TYPE_PATTERN = ['verb','noun','adjective','adverb','number','question word','expression','preposition','pronoun','noun'];
+const issuedWordIds = new Set(Object.values(saved.presentedByDay).flat());
+const batch = (sequence, excludedIds = issuedWordIds) => {
+  const selected = [];
+  for (let index = 0; index < activeProfile.wordCount; index++) {
+    const type = TYPE_PATTERN[index % TYPE_PATTERN.length];
+    const alreadySelected = new Set(selected.map((word) => word.id));
+    const unused = (word) => !placementKnownIds.has(word.id) && !excludedIds.has(word.id) && !alreadySelected.has(word.id);
+    let choices = availableWords.filter((word) => word.type === type && word.difficulty === activeProfile.difficulty && unused(word));
+    if (!choices.length) choices = availableWords.filter((word) => word.type === type && unused(word));
+    if (!choices.length) choices = availableWords.filter(unused);
+    // Only recycle a word after the learner has exhausted every eligible word.
+    if (!choices.length) choices = availableWords.filter((word) => !alreadySelected.has(word.id));
+    const choiceIndex = (sequence * 5 + index * 11) % choices.length;
+    selected.push(choices[choiceIndex]);
+  }
+  return selected;
+};
+const dailySequence = dayNumber * 50;
+const savedToday = saved.presentedByDay[todayKey] || [];
+const batchKey = `${todayKey}:${extraBatch}`;
+const legacyBatch = !saved.batchesByKey[batchKey] && savedToday.length >= activeProfile.wordCount
+  ? (extraBatch === 0 ? savedToday.slice(0, activeProfile.wordCount) : savedToday.slice(-activeProfile.wordCount))
+  : [];
+const todaysWords = (saved.batchesByKey[batchKey] || legacyBatch)
+  .map((id) => WORD_BY_ID.get(id)).filter(Boolean);
+if (!todaysWords.length) {
+  todaysWords.push(...batch(dailySequence + extraBatch));
+  saved.batchesByKey[batchKey] = todaysWords.map((word) => word.id);
+} else if (!saved.batchesByKey[batchKey]) {
+  saved.batchesByKey[batchKey] = todaysWords.map((word) => word.id);
+}
 saved.seenDays = Array.from(new Set([...saved.seenDays, todayKey])).sort();
 saved.presentedByDay[todayKey] = [...new Set([...(saved.presentedByDay[todayKey] || []), ...todaysWords.map((word) => word.id)])];
 localStorage.setItem('tiOrdProfiles', JSON.stringify(profiles));
@@ -117,10 +133,8 @@ const saveCloud = () => window.queueCloudSave?.();
 
 function knownWords() {
   const revealedIds = Object.entries(saved.revealed).filter(([, revealed]) => revealed).map(([key]) => key.slice(11));
-  const previousDayIds = Object.entries(saved.presentedByDay)
-    .filter(([date]) => date < todayKey)
-    .flatMap(([, ids]) => ids);
-  return [...new Set([...placementKnownIds, ...revealedIds, ...previousDayIds, ...saved.completedBatchIds])].map((id) => WORD_BY_ID.get(id)).filter(Boolean);
+  const presentedIds = Object.values(saved.presentedByDay).flat();
+  return [...new Set([...placementKnownIds, ...revealedIds, ...presentedIds, ...saved.completedBatchIds])].map((id) => WORD_BY_ID.get(id)).filter(Boolean);
 }
 
 function consecutiveStreak(days) {
